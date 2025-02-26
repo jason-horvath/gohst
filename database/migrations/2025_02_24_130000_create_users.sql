@@ -5,7 +5,7 @@ CREATE TABLE users (
     firstname     VARCHAR(100) NOT NULL,
     lastname      VARCHAR(100) NOT NULL,
     email         VARCHAR(255) NOT NULL UNIQUE,
-    password      VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     role_id       BIGINT UNSIGNED NOT NULL,
     active        TINYINT(1) NOT NULL DEFAULT 1,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
