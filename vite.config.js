@@ -14,8 +14,10 @@ export default defineConfig({
       "./assets/css/**/*.css",
       "./assets/js/**/*.js",
       "./assets/js/**/*.ts",
-      "./internal/**/*.go",
       "./cmd/**/*.go",
+      "./internal/**/*.go",
+      "./templates/**/*.html",
+      "./templates/**/*.tmpl",
     ]),
   ],
   build: {
