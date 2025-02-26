@@ -1,0 +1,85 @@
+#!/bin/bash
+
+SCRIPT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$SCRIPT_ROOT/../.."
+DATABASE_DIR="$ROOT_DIR/database"
+MIGRATION_DIR="$DATABASE_DIR/migrations"
+SEED_DIR="$DATABASE_DIR/seeds"
+DOCKER_MYSQL_DIR="$ROOT_DIR/docker/mysql"
+DOCKER_DATA_DIR="$DOCKER_MYSQL_DIR/data"
+DOCKER_INIT_DIR="$DOCKER_MYSQL_DIR/init"
+DOCKER_INIT_SQL_PATH="$DOCKER_INIT_DIR/init.sql"
+
+# Clear old SQL files
+echo "🔍 Removing SQL from within $DOCKER_MYSQL_DIR..."
+"$ROOT_DIR/cmd/dev/docker_sql_clear"
+echo "✅ Docker SQL Files cleared at $DOCKER_MYSQL_DIR!"
+
+# Ensure the docker mysql direcotry exists and clear old SQL files
+create_dir_if_not_exists() {
+    local dir=$1
+    if [ ! -d "$dir" ]; then
+        echo "📂 Creating directory: $dir"
+        mkdir -p "$dir"
+    fi
+}
+
+# Ensure required directories exist
+create_dir_if_not_exists "$DOCKER_MYSQL_DIR"
+create_dir_if_not_exists "$DOCKER_DATA_DIR"
+create_dir_if_not_exists "$DOCKER_INIT_DIR"
+
+# Remove any existing SQL files
+rm -rf "$DOCKER_MYSQL_DIR"/*.sql
+rm -rf "$DOCKER_DATA_DIR"/*.sql
+rm -rf "$DOCKER_INIT_DIR"/*.sql
+
+# Global Counter for SQL file order
+global_counter=1
+
+create_init_sql() {
+    # Load .env file if it exists
+    if [ -f .env ]; then
+        export $(grep -v '^#' .env | xargs)
+    fi
+
+# Create the MySQL init script dynamically
+cat > $DOCKER_INIT_SQL_PATH <<EOF
+CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`;
+
+-- User exists from docker creation, reference SQL below would be the creation of of new user
+CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';
+
+GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'%' WITH GRANT OPTION;
+
+FLUSH PRIVILEGES;
+EOF
+
+    echo "✅ MySQL initialization script generated at $DOCKER_INIT_SQL_PATH"
+}
+
+# Function to copy files in order
+copy_files() {
+    local src_dir=$1
+    local target_dir=$2
+
+    echo "📂 Processing directory: $src_dir"
+
+    for file in "$src_dir"/*.sql; do
+        [ -f "$file" ] || continue  # Skip if no .sql files exist
+        cp "$file" "$target_dir/$(printf "%03d_%s" "$global_counter" "$(basename "$file")")"
+        ((global_counter++))
+    done
+}
+
+# Initialize the database and user permissions
+echo "🚀 Creating MySQL initialization script..."
+create_init_sql
+
+# Copy migrations first (starting from 001)
+copy_files "$MIGRATION_DIR" "$DOCKER_DATA_DIR"
+
+# Copy seeds next (continuing counter to ensure migrations run first)
+copy_files "$SEED_DIR" "$DOCKER_DATA_DIR"
+
+echo "✅ Migrations and seeds copied to $DOCKER_DATA_DIR in correct order!"

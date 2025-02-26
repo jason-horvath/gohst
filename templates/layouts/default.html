@@ -1,0 +1,14 @@
+{{ define "layout/default" }}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{block "title" .}}Welcome to Gohst{{end}}</title>
+    {{ fn_assets_head }}
+  </head>
+  <body class="text-gray-900 bg-gray-100">
+    {{template "header" .}} {{block "content" .}}{{end}} {{template "footer" .}}
+  </body>
+</html>
+{{end}}

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["assets/js/*"]
+    }
+  },
+  "include": ["assets/js/**/*.ts", "assets/js/**/*.d.ts", "assets/js/**/*.tsx"],
+  "exclude": ["node_modules"]
+}

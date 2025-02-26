@@ -1,0 +1,37 @@
+services:
+  gohst-mysql:
+    image: mysql:8.3
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "3406:3306"
+    volumes:
+      - ./docker/mysql/init/init.sql:/etc/mysql/init.sql
+      - ./docker/mysql/data:/docker-entrypoint-initdb.d
+      - gohst-mysql-data:/var/lib/mysql
+    command: ["--init-file", "/etc/mysql/init.sql"]
+    networks:
+      - gohst-network
+
+  gohst-phpmyadmin:
+    depends_on:
+      - gohst-mysql
+    image: linuxserver/phpmyadmin
+    environment:
+      - PMA_HOST=${DB_HOST_DOCKER}
+      - PMA_USER=${DB_USER}
+      - PMA_PASSWORD=${DB_PASSWORD}
+      - PMA_DATABASE=${DB_NAME}
+    ports:
+      - "8585:80"
+    networks:
+      - gohst-network
+
+networks:
+  gohst-network:
+    driver: bridge
+
+volumes:
+  gohst-mysql-data:
+    external: false

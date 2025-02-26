@@ -1,0 +1,29 @@
+{
+  "name": "gohst",
+  "version": "1.0.0",
+  "description": "Go Apps Made Easy",
+  "main": "static/dist/js/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "author": {
+    "name": "Jason Horvath",
+    "email": "jason.horvath@larzilla.com"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.4",
+    "@types/alpinejs": "^3.13.11",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^4.0.4",
+    "typescript": "^5.7.3",
+    "vite-plugin-live-reload": "^3.0.4"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.8",
+    "dotenv": "^16.4.7",
+    "vite": "^6.1.0"
+  }
+}

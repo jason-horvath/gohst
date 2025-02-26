@@ -1,0 +1,51 @@
+#!/bin/bash
+
+APP_DIR="$(pwd)"  # Change this if needed
+AIR_CMD="air -c .air.toml"
+
+# Load .env file if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Read APP_PORT from the environment or default to 5000
+APP_PORT=${APP_PORT:-5000}
+
+start_server() {
+    echo "💨 Starting air server on port $APP_PORT..."
+    cd "$APP_DIR" || exit
+    nohup $AIR_CMD > tmp/air.log 2>&1 & disown  # Run air in the background
+    sleep 1  # Allow time for Air to fully start
+    echo "✅ Air started running ghost on port $APP_PORT!"
+}
+
+stop_server() {
+    echo "🛑 Stopping all processes using port $APP_PORT..."
+
+    # Kill all processes using the APP_PORT
+    if lsof -ti :$APP_PORT >/dev/null; then
+        kill -9 $(lsof -ti :$APP_PORT)
+        echo "✅ All processes using port $APP_PORT have been stopped!"
+    else
+        echo "ℹ️  No processes found on port $APP_PORT."
+    fi
+}
+
+# Handle script arguments
+case "$1" in
+    start)
+        start_server
+        ;;
+    stop)
+        stop_server
+        ;;
+    restart)
+        stop_server
+        sleep 1
+        start_server
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac

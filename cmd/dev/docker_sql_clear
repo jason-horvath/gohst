@@ -1,0 +1,19 @@
+#!/bin/bash
+
+ROOT_DIR="$(cd "$(dirname "$0")"/../.. && pwd)"
+DOCKER_MYSQL_DIR="$ROOT_DIR/docker/mysql"
+DOCKER_DATA_DIR="$DOCKER_MYSQL_DIR/data"
+DOCKER_INIT_DIR="$DOCKER_MYSQL_DIR/init"
+
+# Ensure the initdb directory exists
+mkdir -p "$DOCKER_MYSQL_DIR"
+
+echo "🔍 Removing SQL from within $DOCKER_MYSQL_DIR..."
+
+# Remove all .sql files (both regular and symlinked)
+find "$DOCKER_DATA_DIR" -type f -name "*.sql" -exec rm {} \;
+find "$DOCKER_DATA_DIR" -type l -name "*.sql" -exec rm {} \;
+find "$DOCKER_INIT_DIR" -type f -name "*.sql" -exec rm {} \;
+find "$DOCKER_INIT_DIR" -type l -name "*.sql" -exec rm {} \;
+
+echo "✅ Docker SQL Files cleared at $DOCKER_MYSQL_DIR!"

@@ -1,0 +1,13 @@
+{
+  "assets/css/entry.css": {
+    "file": "css/style.pQ8GzIMc.css",
+    "src": "assets/css/entry.css",
+    "isEntry": true
+  },
+  "assets/js/entry.ts": {
+    "file": "js/main.CuWNtvZn.js",
+    "name": "main",
+    "src": "assets/js/entry.ts",
+    "isEntry": true
+  }
+}
