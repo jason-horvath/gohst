@@ -51,3 +51,6 @@ indent_size = 2
 charset = utf-8
 trim_trailing_whitespace = true
 
+[*.html]
+max_line_length = 200
+
