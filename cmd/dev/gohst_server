@@ -1,0 +1,123 @@
+#!/bin/bash
+SCRIPT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_ROOT/../.." && pwd)"
+APP_CMD="go run cmd/web/main.go"
+
+# Load .env file if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Read APP_PORT from the environment or default to 5000
+APP_PORT=${APP_PORT:-5000}
+
+# Function to determine the correct watch command based on OS
+get_watch_command() {
+    # Mac OS
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        echo "fswatch -r --event Updated --event Created --event Removed \
+            -e '/\.git/' \
+            -e '/\.git/index.lock' \
+            -e '/vendor/' \
+            -e '/cmd/dev/' \
+            -e '/tmp/' \
+            -e '/node_modules/' \
+            -e '/static/dist/' \
+            -e '/static/.vite/' \
+            -e '/logs/' \
+            -e '\.rdb$' \
+            \"$WATCH_DIR_ABS\""
+    # Linux Distros
+    elif [[ "$(uname -s)" == "Linux" ]]; then
+        echo "inotifywait -m -r -e modify,create,delete \
+            --exclude '(\.git|vendor|cmd/dev|tmp|node_modules|static/dist|static/.vite|logs|\.rdb)' \
+            \"$WATCH_DIR_ABS\""
+    else
+        echo "❌❌❌ Unsupported OS. Exiting. ❌❌❌" >&2
+        exit 1
+    fi
+}
+
+# Watch for changes in the WATCH_DIR
+watch_for_changes() {
+    # Convert WATCH_DIR to an absolute path
+    WATCH_DIR="$ROOT_DIR"
+
+    echo "🔄 Watching for file changes in $WATCH_DIR - Restarting on changes!"
+     # Restart the application
+    echo "🚀 Starting Gohst server..."
+    cd "$ROOT_DIR" || exit 1
+    nohup $APP_CMD > tmp/gohst.log 2>&1 & disown
+    echo "👻 Gohst server started! 👻"
+
+    WATCH_CMD=$(get_watch_command)
+
+    eval $WATCH_CMD | while read FILE_CHANGE; do
+        clear
+        # Ensure FILE_CHANGE is not empty
+        if [ -n "$FILE_CHANGE" ]; then
+            echo "🔍 Change detected: $FILE_CHANGE"
+        else
+            echo "❗️ No file change detected! Check $WATCH_DIR path or exclusions."
+            continue
+        fi
+
+        echo "🔄 Detected changes. Restarting server..."
+
+        # Kill process running on APP_PORT
+        if lsof -ti :$APP_PORT >/dev/null; then
+            echo "🛑 Stopping process on port $APP_PORT..."
+            PIDS=$(lsof -ti :$APP_PORT)
+
+            if [ -n "$PIDS" ]; then
+                kill -9 $PIDS
+                echo "✅ Process on port $APP_PORT stopped!"
+            fi
+        fi
+
+        # Restart the application
+        echo "🚀 Restarting Gohst server..."
+        cd "$ROOT_DIR" || exit 1
+        nohup $APP_CMD >> tmp/gohst.log 2>&1 & disown
+        echo "👻 Gohst server restarted! 👻"
+    done
+
+    # Kill process running on APP_PORT
+    if lsof -ti :$APP_PORT >/dev/null; then
+        echo "🛑 Stopping process on port $APP_PORT..."
+        kill -9 $(lsof -ti :$APP_PORT)
+    fi
+
+    echo ""
+    echo "=== 👻 Gohst watch interrupted 👻 ==="
+}
+
+# Stop the server
+stop_server() {
+    echo "🛑 Stopping all processes on port $APP_PORT..."
+    lsof -ti :$APP_PORT | xargs kill -9 2>/dev/null
+
+    sleep 2
+
+    # Force kill lingering processes
+    if lsof -ti :$APP_PORT >/dev/null; then
+        lsof -ti :$APP_PORT | xargs kill -9 2>/dev/null
+        echo "🛑 Force killed remaining processes!"
+    fi
+
+    echo "🛑 Stopped all processes on port $APP_PORT!"
+}
+
+# Handle script arguments
+case "$1" in
+    start)
+        watch_for_changes
+        ;;
+    stop)
+        stop_server
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
