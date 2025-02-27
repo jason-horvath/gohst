@@ -7,8 +7,10 @@
     <title>{{block "title" .}}Welcome to Gohst{{end}}</title>
     {{ fn_assets_head }}
   </head>
-  <body class="text-gray-900 bg-gray-100">
-    {{template "header" .}} {{block "content" .}}{{end}} {{template "footer" .}}
+  <body class="text-white bg-zinc-700">
+    <main class="bg-gradient-to-b from-zinc-800 to-zinc-700">
+      <div>{{template "header" .}} {{block "content" .}}{{end}} {{template "footer" .}}</div>
+    </main>
   </body>
 </html>
 {{end}}
