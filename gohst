@@ -6,9 +6,10 @@ TMP_DIR="$ROOT_DIR/tmp"
 CMD_DIR="$ROOT_DIR/cmd"
 CMD_DEV_DIR="$CMD_DIR/dev"
 GOHST_SERVER="$CMD_DEV_DIR/gohst_server"
-VITE_PROCESS="$CMD_DEV_DIR/vite_process"
 DOCKER_SQL_BUILD="$CMD_DEV_DIR/docker_sql_build"
 DOCKER_SQL_CLEAR="$CMD_DEV_DIR/docker_sql_clear"
+STORAGE_MGR="$CMD_DEV_DIR/storage_mgr"
+VITE_PROCESS="$CMD_DEV_DIR/vite_process"
 VITE_PID_FILE="$TMP_DIR/vite.pid"
 
 
@@ -71,6 +72,8 @@ case "$1" in
         echo "📦📦 Installing NPM Packages  📦📦"
         cd "$ROOT_DIR" || exit
         npm install
+
+        "$STORAGE_MGR" "link"
 
         echo "✅ Gohst is built!"
         echo "👻 To begin, run: run: gohst up"
@@ -167,6 +170,9 @@ case "$1" in
         echo "🛑 Dev environment is down!"
         echo ""
         ;;
+    storage:link)
+        "$STORAGE_MGR" "link"
+        ;;
     *)
         echo ""
         echo -e "====++++====++++====++++====++++====++++====++++====++++====\n"
@@ -182,7 +188,8 @@ case "$1" in
         echo "  server:stop         - Stop the ghost server"
         echo "  docker:sql:build    - Set up database migrations & seeds for docker"
         echo "  docker:sql:clear    - Delete migrations & seeds for docker"
-        echo "  docker:rebuild      - Rebuild dockerr"
+        echo "  docker:rebuild      - Rebuild docker"
+        echo "  stroge:link         - Link assets to the static directory"
         echo ""
         exit 1
         ;;
