@@ -4,8 +4,35 @@ ROOT_DIR="$(cd "$SCRIPT_ROOT/../.." && pwd)"
 TMP_DIR="$ROOT_DIR/tmp"
 VITE_PID_FILE="$TMP_DIR/vite.pid"
 
+# Load .env file if it exists
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+start_refresh_server() {
+    echo "🌐 Starting WebSocket refresh server..."
+    nohup node -e "
+    const WebSocket = require('ws');
+    const wss = new WebSocket.Server({ port: $VITE_PORT });
+    setTimeout(() => {
+      wss.clients.forEach(client => client.send('reload'));
+      process.exit();
+    }, 2000);
+    " > /dev/null 2>&1 &
+}
+
 vite_start() {
     # Step 4: Start Vite in the background
+    echo "🔥 Starting Vite in the background..."
+    cd "$ROOT_DIR" || exit 1
+    nohup npm run dev > tmp/vite.log 2>&1 &
+    echo $! > "$VITE_PID_FILE"
+    echo "✅ Vite started with PID $(cat "$VITE_PID_FILE")"
+}
+
+vite_start_refresh() {
+    # Step 4: Start Vite in the background
+    // start_refresh_server
     echo "🔥 Starting Vite in the background..."
     cd "$ROOT_DIR" || exit 1
     nohup npm run dev > tmp/vite.log 2>&1 &
@@ -32,9 +59,13 @@ vite_stop() {
     fi
 }
 
+
 case "$1" in
     start)
         vite_start
+        ;;
+    start:refresh)
+        vite_start_refresh
         ;;
     stop)
         vite_stop
