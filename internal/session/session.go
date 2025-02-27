@@ -9,6 +9,10 @@ import (
 	"gohst/internal/config"
 )
 
+type contextKey string
+
+const sessionIDKey contextKey = "sessionID"
+
 const SESSION_LENGTH_DEFAULT = 60
 
 const SESSION_NAME = "session_id"
@@ -91,7 +95,7 @@ func GetSessionLength() time.Duration {
 	session := config.Session
 	sessionLength := SESSION_LENGTH_DEFAULT
 
-	if session == nil {
+	if session != nil {
 		if session.Length > 0 {
 			sessionLength = session.Length
 		}
