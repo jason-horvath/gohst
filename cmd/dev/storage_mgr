@@ -1,0 +1,49 @@
+#!/bin/bash
+SCRIPT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_ROOT/../.." && pwd)"
+STORAGE_DIR="$ROOT_DIR/assets/storage"
+STATIC_DIR="$ROOT_DIR/static"
+
+link_images() {
+    local LINK_TARGET="$STATIC_DIR/images"
+    local LINK_SOURCE="$STORAGE_DIR/images"
+
+    if [ -L "$LINK_TARGET" ] || [ -d "$LINK_TARGET" ]; then
+        echo "✅ Images already linked."
+    else
+        echo "🔗 Linking images..."
+        ln -s "$LINK_SOURCE" "$LINK_TARGET"
+        echo "✅ Images linked!"
+    fi
+}
+
+link_uploads() {
+    local LINK_TARGET="$STATIC_DIR/uploads"
+    local LINK_SOURCE="$STORAGE_DIR/uploads"
+
+    if [ -L "$LINK_TARGET" ] || [ -d "$LINK_TARGET" ]; then
+        echo "✅ Uploads already linked."
+    else
+        echo "🔗 Linking uploads..."
+        ln -s "$LINK_SOURCE" "$LINK_TARGET"
+        echo "✅ Uploads linked!"
+    fi
+}
+
+# Commands for linking
+case "$1" in
+    link)
+        link_images
+        link_uploads
+        ;;
+    link:images)
+        link_images
+        ;;
+    link:uploads)
+        link_images
+        ;;
+    *)
+        echo "ℹ️  Usage: $0 {link|link:images|link:uploads}"
+        exit 1
+        ;;
+esac
