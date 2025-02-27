@@ -1,0 +1,46 @@
+#!/bin/bash
+SCRIPT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_ROOT/../.." && pwd)"
+TMP_DIR="$ROOT_DIR/tmp"
+VITE_PID_FILE="$TMP_DIR/vite.pid"
+
+vite_start() {
+    # Step 4: Start Vite in the background
+    echo "🔥 Starting Vite in the background..."
+    cd "$ROOT_DIR" || exit 1
+    nohup npm run dev > tmp/vite.log 2>&1 &
+    echo $! > "$VITE_PID_FILE"
+    echo "✅ Vite started with PID $(cat "$VITE_PID_FILE")"
+}
+
+vite_stop() {
+    if [ -f "$VITE_PID_FILE" ]; then
+        VITE_PID=$(cat "$VITE_PID_FILE")
+
+        # Check if the process is actually running before killing
+        if ps -p "$VITE_PID" > /dev/null 2>&1; then
+            kill "$VITE_PID"
+            echo "🛑 Vite stopped (PID: $VITE_PID)."
+        else
+            echo "🛑 Vite process (PID: $VITE_PID) not found, may have already stopped."
+        fi
+
+        # Remove the PID file
+        rm "$VITE_PID_FILE"
+    else
+        echo "🛑 No Vite PID file found. Vite may not be running."
+    fi
+}
+
+case "$1" in
+    start)
+        vite_start
+        ;;
+    stop)
+        vite_stop
+        ;;
+    *)
+        echo "ℹ️  Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
