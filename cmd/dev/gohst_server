@@ -1,6 +1,7 @@
 #!/bin/bash
 SCRIPT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_ROOT/../.." && pwd)"
+VITE_PROCESS="$ROOT_DIR/cmd/dev/vite_process"
 APP_CMD="go run cmd/web/main.go"
 
 # Load .env file if it exists
@@ -76,6 +77,10 @@ watch_for_changes() {
 
     eval $WATCH_CMD | while read FILE_CHANGE; do
         clear
+
+        # Stop Vite
+        "$VITE_PROCESS" "stop"
+
         # Ensure FILE_CHANGE is not empty
         if [ -n "$FILE_CHANGE" ]; then
             echo "🔍 Change detected: $FILE_CHANGE"
@@ -87,20 +92,26 @@ watch_for_changes() {
         echo "🔄 Detected changes. Restarting server..."
 
         # Kill process running on APP_PORT
-        if lsof -ti :$APP_PORT >/dev/null; then
-            echo "🛑 Stopping process on port $APP_PORT..."
-            PIDS=$(lsof -ti :$APP_PORT)
+        echo "🛑 Stopping process on port $APP_PORT..."
+        echo -n "⌛ Waiting for process to fully exit..."
+        # Wait until the port is free
+        until ! lsof -ti :$APP_PORT >/dev/null; do
+            echo -n "."
+            kill -9 $(lsof -ti :$APP_PORT) 2>/dev/null
+            sleep 0.2 # Give it some time to fully release
+        done
 
-            if [ -n "$PIDS" ]; then
-                kill -9 $PIDS
-                echo "✅ Process on port $APP_PORT stopped!"
-            fi
-        fi
+        echo ""
+        echo "✅ Process on port $APP_PORT fully stopped!"
 
         # Restart the application
         echo "🚀 Restarting Gohst server..."
         cd "$ROOT_DIR" || exit 1
+        echo "👻 Gohst server restarting..." >> "tmp/gohst.log"
         nohup $APP_CMD >> tmp/gohst.log 2>&1 & disown
+
+        # start Vite
+        "$VITE_PROCESS" "start:refresh"
         echo "👻 Gohst server restarted! 👻"
         echo ""
     done
