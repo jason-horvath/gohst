@@ -5,11 +5,23 @@ ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TMP_DIR="$ROOT_DIR/tmp"
 CMD_DIR="$ROOT_DIR/cmd"
 CMD_DEV_DIR="$CMD_DIR/dev"
-AIR_SERVER="$CMD_DEV_DIR/air_server"
+GOHST_SERVER="$CMD_DEV_DIR/gohst_server"
+VITE_PROCESS="$CMD_DEV_DIR/vite_process"
 DOCKER_SQL_BUILD="$CMD_DEV_DIR/docker_sql_build"
 DOCKER_SQL_CLEAR="$CMD_DEV_DIR/docker_sql_clear"
 VITE_PID_FILE="$TMP_DIR/vite.pid"
 
+
+check_for_env() {
+    # Step 1: Check if .env file exists
+    if [ ! -f "$ROOT_DIR/.env" ]; then
+        echo "❌ .env file not found!"
+        echo "👉 Please copy .env.example to .env and configure it before proceeding."
+        exit 1
+    fi
+}
+
+check_for_env
 
 wait_for_mysql() {
     spinner="/|\\-"
@@ -27,10 +39,10 @@ wait_for_mysql() {
 
 case "$1" in
     server:start)
-        exec "$AIR_SERVER" "start"
+        exec "$GOHST_SERVER" "start"
         ;;
     server:stop)
-        exec "$AIR_SERVER" "stop"
+        exec "$GOHST_SERVER" "stop"
         ;;
     docker:sql::build)
         exec "$DOCKER_SQL_BUILD"
@@ -51,42 +63,29 @@ case "$1" in
         echo "🔗 Ensuring database migrations & seeds are linked..."
         "$DOCKER_SQL_BUILD"
 
-        # Step 2: Bring up Docker
-        echo "🐳 Bringing up Docker containers..."
-        docker compose up -d --build
+        # Step 2: Build Docker containers
+        echo "🐳 Building Docker containers..."
+        docker compose build
 
         # Step 3: Install npm dependencies
         echo "📦📦 Installing NPM Packages  📦📦"
-        echo "$ROOT_DIR/npm install"
-
-        # Step 4: Start Vite in the background
-        echo "🔥 Starting Vite in the background..."
-        nohup npm run dev > tmp/vite.log 2>&1 &
-        echo $! > "$VITE_PID_FILE"
-        echo "✅ Vite started with PID $(cat "$VITE_PID_FILE")"
-
-        # Step 5: Wait for MySQL to be ready
-        wait_for_mysql
-
-        echo "✅ MySQL is ready!"
-
-        # Step 5: Start Air for live-reloading Go server
-        echo "💨 Starting Air dev server..."
         cd "$ROOT_DIR" || exit
-        exec "$AIR_SERVER" "start"
+        npm install
 
-        echo "✅ Dev environment is up!"
+        echo "✅ Gohst is built!"
+        echo "👻 To begin, run: run: gohst up"
         ;;
     destroy)
         echo "🔥 Destroying development environment..."
 
-        # Step 2: Bring down Docker
+        # Step 1: Bring down Docker
         docker compose down -v
+        "$DOCKER_SQL_CLEAR"
 
-        # Step 3: Start Air for live-reloading Go server
-        echo "💨 Stopping Air dev server..."
+        # Step 2: Start Air for live-reloading Go server
+        echo "💨 Stopping Gohst server..."
 
-        # Step: 4 Stop Vite if running
+        # Step 3: Stop Vite if running
         if [ -f "$VITE_PID_FILE" ]; then
             echo "🛑 Stopping Vite..."
             kill $(cat "$VITE_PID_FILE") && rm "$VITE_PID_FILE"
@@ -95,7 +94,7 @@ case "$1" in
             echo "ℹ️  No Vite process found."
         fi
 
-        # Step 5: Remove node_modules
+        # Step 4: Remove node_modules
         if [ -d "$ROOT_DIR/node_modules" ]; then
             echo "🗑 Removing node_modules directory..."
             rm -rf "$ROOT_DIR/node_modules"
@@ -104,12 +103,15 @@ case "$1" in
             echo "ℹ️  No node_modules directory found."
         fi
 
+        # Step 5: Make sure the gohst server is down
         cd "$ROOT_DIR" || exit
-        exec "$AIR_SERVER" "stop"
+        exec "$GOHST_SERVER" "stop"
 
-        echo "✅ Dev environment is down!"
+        # Step 6: tmp directory cleanup
+
+        echo "✅ Dev environment is destroyed!"
         ;;
-    up)
+    dev)
         echo ""
         echo "🚀 Starting development environment..."
 
@@ -117,23 +119,30 @@ case "$1" in
         echo "🐳 Bringing up Docker containers..."
         docker compose up -d
 
-        # Setup 3: Start vite and store PID in vite.pid file
-        echo "🔥 Starting Vite in the background..."
-        cd "$ROOT_DIR" || exit 1
-        nohup npm run dev > tmp/vite.log 2>&1 &
-        echo $! > tmp/vite.pid  # Save the process ID (PID)
+        # Start Cite
+        "$VITE_PROCESS" "start"
 
         # Step 4: Wait for MySQL to be ready
         wait_for_mysql
 
-        # Step 5: Start Air for live-reloading Go server
+        # Step 5: Start GOHST Server for live-reloading Go server
         cd "$ROOT_DIR" || exit
-        "$AIR_SERVER" "start"
-        echo "✅ Dev environment is up!"
+        "$GOHST_SERVER" "start"
+
+        # After killing signal: stop gohst stop Vite, stop Docker
+        echo "🛑 Stopping Gohst server"
+        "$GOHST_SERVER" "stop"
+
+        echo "🛑 Stopping Vite"
+        "$VITE_PROCESS" "stop"
+
+        echo "🛑 Stopping Docker"
+        docker compose stop
+        echo "🛑 Dev environment manually halted!"
         echo ""
         ;;
 
-     down)
+     dev:down)
         echo ""
         echo "🛑 Stopping development environment..."
 
@@ -151,9 +160,10 @@ case "$1" in
         fi
 
         # Step 3: Start Air for live-reloading Go server
-        echo -e "💨 Stopping Air dev server..."
+        echo -e "💨 Stopping Gohst Server..."
         cd "$ROOT_DIR" || exit
-        "$AIR_SERVER" "stop"
+        "$GOHST_SERVER" "stop"
+        docker compose stop
         echo "🛑 Dev environment is down!"
         echo ""
         ;;
@@ -164,12 +174,12 @@ case "$1" in
         echo -e "====++++====++++====++++====++++====++++====++++====++++====\n"
         echo "Available commands:"
         echo ""
-        echo "  build               - Build the development environment with dockersql files: npm, docker, vite air"
-        echo "  destroy             - Destroy the development environment including dockersql files: npm, docker, vite, air"
-        echo "  up                  - Bring up the development environment: npm, docker, vite, air"
-        echo "  down                - Bring down the development environment: npm, docker, vite, air"
+        echo "  build               - Build the development environment with dockersql files: npm, docker, vite, gohst"
+        echo "  destroy             - Destroy the development environment including docker, sql files: npm, docker, vite, gohst"
+        echo "  dev                 - Bring up the development environment: npm, docker, vite, gohst"
+        echo "  dev:down            - Bring down the development environment: npm, docker, vite, gohst"
         echo "  server:start        - Start the air application server"
-        echo "  server:stop         - Stop the air  server"
+        echo "  server:stop         - Stop the ghost server"
         echo "  docker:sql:build    - Set up database migrations & seeds for docker"
         echo "  docker:sql:clear    - Delete migrations & seeds for docker"
         echo "  docker:rebuild      - Rebuild dockerr"
