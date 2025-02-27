@@ -11,6 +11,26 @@ fi
 # Read APP_PORT from the environment or default to 5000
 APP_PORT=${APP_PORT:-5000}
 
+gohst_log_header() {
+    echo "
+      ██████╗  ██████╗ ██╗  ██╗███████╗████████╗
+     ██╔════╝ ██╔═══██╗██║  ██║██╔════╝╚══██╔══╝
+     ██║  ███╗██║   ██║███████║███████╗   ██║
+     ██║   ██║██║   ██║██╔══██║╚════██║   ██║
+     ╚██████╔╝╚██████╔╝██║  ██║███████╗   ██║
+      ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝   ╚═╝
+
+ ---------------------------------------------------
+
+ 👻👻👻 GOHST DEVELOPMENT SERVER STARTING... 👻👻👻
+
+ ---------------------------------------------------
+
+ Using port: $APP_PORT
+
+"
+}
+
 # Function to determine the correct watch command based on OS
 get_watch_command() {
     # Mac OS
@@ -47,8 +67,10 @@ watch_for_changes() {
      # Restart the application
     echo "🚀 Starting Gohst server..."
     cd "$ROOT_DIR" || exit 1
-    nohup $APP_CMD > tmp/gohst.log 2>&1 & disown
+    gohst_log_header > "tmp/gohst.log"
+    nohup $APP_CMD >> tmp/gohst.log 2>&1 & disown
     echo "👻 Gohst server started! 👻"
+    echo ""
 
     WATCH_CMD=$(get_watch_command)
 
@@ -80,6 +102,7 @@ watch_for_changes() {
         cd "$ROOT_DIR" || exit 1
         nohup $APP_CMD >> tmp/gohst.log 2>&1 & disown
         echo "👻 Gohst server restarted! 👻"
+        echo ""
     done
 
     # Kill process running on APP_PORT
@@ -89,7 +112,9 @@ watch_for_changes() {
     fi
 
     echo ""
-    echo "=== 👻 Gohst watch interrupted 👻 ==="
+    echo ""
+    echo "=== 👻 Gohst watch interrupted 👻 ===
+    "
 }
 
 # Stop the server
