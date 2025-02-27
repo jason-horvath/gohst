@@ -45,5 +45,8 @@ export default defineConfig({
     proxy: {
       "/static": `http://localhost:${vitePort}`,
     },
+    hmr: {
+      delay: 400, // Wait 400ms for gohst dev restarts
+    },
   },
 });
