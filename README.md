@@ -22,7 +22,7 @@ NOTE: The project is ongoing and will continue to evolve with new features and i
 gohst/
 ├── cmd/
 │   ├── dev/                    # Development scripts
-│   │   ├── air_server          # Air hot-reload control
+│   │   ├── gohst_server        # ghost hot-reload control
 │   │   ├── docker_sql_build    # Database setup
 │   │   └── docker_sql_clear    # Database cleanup
 │   └── web/                    # Main application
