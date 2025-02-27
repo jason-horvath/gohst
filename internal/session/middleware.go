@@ -16,7 +16,7 @@ func (sm *SessionManager) SessionMiddleware(next http.Handler) http.Handler {
 			sessionData = &SessionData{}
 			log.Println("Started a new session with ID:", sessionID)
 		} else {
-			// sm.SetValue(sessionID, "Name", "Jason")
+		    sm.SetValue(sessionID, "Name", "Jason")
 			name, _ := sm.GetValue(sessionID, "Name")
 			log.Println("Name in session:", name)
 			log.Println("Session store type:", sm.StoreType)
@@ -24,7 +24,7 @@ func (sm *SessionManager) SessionMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Store session data in request context
-		ctx := context.WithValue(r.Context(), "sessionID", sessionID)
+		ctx := context.WithValue(r.Context(), sessionIDKey, sessionID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
