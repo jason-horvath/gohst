@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-const APP_DEFAULT_PORT = 3000
+const APP_DEFAULT_PORT = 5000
 
 // AppConfig holds the application's configuration values.
 type AppConfig struct {
@@ -24,7 +24,7 @@ func initApp() {
 
 	App = &AppConfig{
 		EnvKey: GetEnv("APP_ENV_KEY", "development").(string),
-		URL: GetEnv("APP_URL", "http://localhost:3000").(string),
+		URL: GetEnv("APP_URL", "http://localhost:" + strconv.Itoa(APP_DEFAULT_PORT)).(string),
 		DistPath: GetEnv("APP_DIST_PATH", "static/dist").(string),
 		Port: GetEnv("APP_PORT", APP_DEFAULT_PORT).(int),
 	}
