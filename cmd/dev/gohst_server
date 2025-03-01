@@ -111,7 +111,7 @@ watch_for_changes() {
         nohup $APP_CMD >> tmp/gohst.log 2>&1 & disown
 
         # start Vite
-        "$VITE_PROCESS" "start:refresh"
+        "$VITE_PROCESS" "start"
         echo "👻 Gohst server restarted! 👻"
         echo ""
     done
