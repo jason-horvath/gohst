@@ -12,7 +12,7 @@ import (
 
 func main() {
 	config.InitConfig()
-	sm := session.NewSessionManager()
+	session.Init()
 	db.InitDB()
 	defer db.CloseDB()
 
@@ -22,7 +22,7 @@ func main() {
 	log.Println("config.DB:", config.DB)
 
 	rc := routes.RouteConfig{
-		SessionManager: sm,
+		SessionManager: session.SM,
 	}
 	mux := routes.SetupRoutes(rc)
 	port := config.App.PortStr()
