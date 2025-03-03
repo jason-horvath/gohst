@@ -11,7 +11,7 @@ import (
 
 type contextKey string
 
-const sessionIDKey contextKey = "sessionID"
+const SessionIDKey contextKey = "sessionID"
 
 const SESSION_LENGTH_DEFAULT = 60
 
@@ -29,6 +29,8 @@ var SESSION_VALID_TYPES = []string{
 	SESSION_TYPE_REDIS,
 }
 
+var SM *SessionManager
+
 // SessionData stores session values
 type SessionData struct {
 	Values  map[string]interface{} 	`json:"values"`
@@ -39,6 +41,16 @@ type SessionData struct {
 type SessionManager struct {
 	StoreType string
 	store SessionStore
+}
+
+// Initialize the session setup
+func Init() {
+	InitSessionManager()
+}
+
+// Initialize the session manager
+func InitSessionManager() {
+	SM = NewSessionManager()
 }
 
 // NewSessionManager initializes Redis connection
