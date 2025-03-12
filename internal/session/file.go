@@ -56,12 +56,18 @@ func (fsm *FileSessionManager) StartSession(w http.ResponseWriter, r *http.Reque
 
 // GetSession retrieves session data from file
 func (fsm *FileSessionManager) GetSession(r *http.Request) (*SessionData, string) {
+	var sessionID string
 	cookie, err := r.Cookie(SESSION_NAME)
 	if err != nil {
-		return nil, ""
+		ctxSessionID, ok := r.Context().Value(SessionIDKey).(string)
+		if !ok {
+			log.Println("Session ID not found in context")
+			return nil, ""
+		}
+		sessionID = ctxSessionID
+	} else {
+		sessionID = cookie.Value
 	}
-
-	sessionID := cookie.Value
 
 	fsm.mu.Lock()
 	session, exists := fsm.sessions[sessionID]
