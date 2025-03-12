@@ -26,7 +26,9 @@ func SetupRoutes(rc RouteConfig) http.Handler {
 
 	return middleware.Chain(
 		mux,
+		session.SM.SessionMiddleware,
+		middleware.CSRF,
 		middleware.Logger,
-		rc.SessionManager.SessionMiddleware,
+		middleware.Auth,
 	)
 }
