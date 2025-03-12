@@ -13,6 +13,17 @@ type BaseController struct {
 	html		*render.Html
 }
 
+func NewBaseController() *BaseController {
+
+	html := render.NewHtml()
+
+	base := &BaseController{
+		html: html,
+	}
+
+	return base
+}
+
 func (c *BaseController) Init(w http.ResponseWriter, r *http.Request) {
 	c.Writer = w
 	c.Request = r
