@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"net/http"
-	"time"
 
 	"gohst/internal/config"
 )
@@ -30,12 +29,6 @@ var SESSION_VALID_TYPES = []string{
 }
 
 var SM *SessionManager
-
-// SessionData stores session values
-type SessionData struct {
-	Values  map[string]interface{} 	`json:"values"`
-	Expires time.Time				`json:"expires"`
-}
 
 // SessionManager using Redis
 type SessionManager struct {
@@ -100,23 +93,6 @@ func (sm *SessionManager) SetValue(sessionID string, key string, value interface
 func (sm *SessionManager) GetValue(sessionID string, key string) (interface{}, bool) {
 	return sm.store.GetValue(sessionID, key)
 }
-
-// GetSessionLength retrieves the session duration from ENV and returns it as time.Duration
-func GetSessionLength() time.Duration {
-	// Read from config
-	session := config.Session
-	sessionLength := SESSION_LENGTH_DEFAULT
-
-	if session != nil {
-		if session.Length > 0 {
-			sessionLength = session.Length
-		}
-	}
-
-	// Convert minutes to time.Duration
-	return time.Duration(sessionLength) * time.Minute
-}
-
 // Function to check if a session type is valid
 func IsValidSessionType(value string) bool {
 	for _, v := range SESSION_VALID_TYPES {
