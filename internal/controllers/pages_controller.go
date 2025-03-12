@@ -2,7 +2,10 @@ package controllers
 
 import (
 	"gohst/internal/render"
+	"log"
 	"net/http"
+
+	"gohst/internal/session"
 )
 
 type PagesController struct {
@@ -10,18 +13,18 @@ type PagesController struct {
 }
 
 func NewPagesController() *PagesController {
-    html := render.NewHtml()
-
     pages := &PagesController{
-        BaseController: &BaseController{
-            html: html,
-        },
+        BaseController: NewBaseController(),
     }
 
     return pages
 }
 
 func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
+	sm := session.NewSessionManager()
+	_, sessionId := sm.GetSession(r)
+	isAuthorized, _ := sm.GetValue(sessionId, "Authorized")
+	log.Println("Is authorized:", isAuthorized)
 	c.Init(w, r)
 	c.html.RenderView(w, "pages/index.html")
 }
