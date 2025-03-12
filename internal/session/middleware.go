@@ -10,7 +10,7 @@ import (
 func (sm *SessionManager) SessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionData, sessionID := sm.GetSession(r)
-
+		log.Println("SESSION")
 		if sessionData == nil {
 			sessionID = sm.StartSession(w, r)
 			sessionData = &SessionData{}
@@ -24,7 +24,7 @@ func (sm *SessionManager) SessionMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Store session data in request context
-		ctx := context.WithValue(r.Context(), sessionIDKey, sessionID)
+		ctx := context.WithValue(r.Context(), SessionIDKey, sessionID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
