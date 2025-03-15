@@ -1,0 +1,36 @@
+{{define "title"}}Login - Welcome to Gohst{{end}} {{define "content"}}
+<div class="w-4/12 mx-auto">
+  <!-- Form Layouts: Labels On Top -->
+  <form class="space-y-6 dark:text-gray-100" action="{{ url }}/login" onsubmit="return false;">
+    <div class="space-y-1">
+      <label for="email" class="inline-block font-medium">Email</label>
+      <input
+        class="block w-full px-3 py-2 leading-6 placeholder-gray-500 border border-gray-200 rounded-lg focus:border-sky-500 focus:ring-3 focus:ring-sky-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-sky-500"
+        type="email"
+        id="email"
+        name="email"
+        placeholder="Enter your email.."
+      />
+    </div>
+    <div class="space-y-1">
+      <label for="password" class="inline-block font-medium">Password</label>
+      <input
+        class="block w-full px-3 py-2 leading-6 placeholder-gray-500 border border-gray-200 rounded-lg focus:border-sky-500 focus:ring-3 focus:ring-sky-500/50 dark:border-gray-600 dark:bg-gray-800 dark:placeholder-gray-400 dark:focus:border-sky-500"
+        type="password"
+        id="password"
+        name="password"
+        placeholder="Enter your password.."
+      />
+    </div>
+    <div class="flex items-center justify-center">
+      <button
+        type="submit"
+        class="inline-flex items-center justify-center gap-2 px-3 px-10 py-2 text-sm font-semibold leading-5 text-white border rounded-lg bg-sky-700 border-sky-700 hover:border-sky-600 hover:bg-sky-600 hover:text-white focus:ring-3 focus:ring-sky-400/50 active:border-sky-700 active:bg-sky-700 dark:focus:ring-sky-400/90"
+      >
+        Login
+      </button>
+    </div>
+  </form>
+  <!-- END Form Layouts: Labels On Top -->
+</div>
+{{end}}
