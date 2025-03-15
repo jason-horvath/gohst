@@ -20,9 +20,11 @@ func SetupRoutes(rc RouteConfig) http.Handler {
 	mux.Handle("GET /static/", http.StripPrefix("/static/", fileServer))
 
 	pages := controllers.NewPagesController()
+	auth := controllers.NewAuthController()
 	mux.HandleFunc("GET /", pages.Index)
 	mux.HandleFunc("GET /about", pages.About)
 	mux.HandleFunc("GET /post/{id}", pages.Post)
+	mux.HandleFunc("GET /login", auth.Login)
 
 	return middleware.Chain(
 		mux,
