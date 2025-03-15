@@ -71,6 +71,8 @@ watch_for_changes() {
     gohst_log_header > "tmp/gohst.log"
     nohup $APP_CMD >> tmp/gohst.log 2>&1 & disown
     echo "👻 Gohst server started! 👻"
+    echo "----------------------------"
+    echo "Go to: $APP_URL"
     echo ""
 
     WATCH_CMD=$(get_watch_command)
