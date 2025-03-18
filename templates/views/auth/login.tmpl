@@ -1,0 +1,22 @@
+{{define "title"}}Login - Welcome to Gohst{{ end }}
+<div class="w-4/12 p-10 mx-auto border rounded-md border-sky-900">
+  <!-- Form Layouts: Labels On Top -->
+  <form
+    class="space-y-6 dark:text-gray-100"
+    action="{{ url }}/login"
+    onsubmit="return false;"
+  >
+    <div class="space-y-1">
+      {{ template "components/forms/label" ((index .Form.Fieldset "email").Label) }}
+      {{ template "components/forms/input" ((index .Form.Fieldset "email").Input) }}
+    </div>
+    <div class="space-y-1">
+      {{ template "components/forms/label" ((index .Form.Fieldset "password").Label) }}
+      {{ template "components/forms/input" ((index .Form.Fieldset "password").Input) }}
+    </div>
+    <div class="flex items-center justify-center">
+      {{ template "components/forms/button" (index .Form.Buttons "submit") }}
+    </div>
+  </form>
+  <!-- END Form Layouts: Labels On Top -->
+</div>

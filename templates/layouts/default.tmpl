@@ -4,13 +4,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{block "title" .}}Welcome to Gohst{{end}}</title>
-    {{ assetsHead }}
+    <title>{{block "title" .}}Welcome to Gohst{{ end }}</title>
+    {{
+      assetsHead
+    }}
   </head>
   <body class="text-white bg-zinc-700">
     <main class="bg-gradient-to-b from-zinc-800 to-zinc-700">
-      <div>{{template "header" .}} {{block "content" .}}{{end}} {{template "footer" .}}</div>
+      <div>
+        {{template "partial/header" .}}{{.Content}}
+        {{template "partial/footer" .}}
+      </div>
     </main>
   </body>
 </html>
-{{end}}
+{{ end }}

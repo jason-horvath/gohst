@@ -1,0 +1,9 @@
+<button
+  {{if
+  .ID}}id="{{.ID}}"
+  {{end}}
+  class="inline-flex items-center justify-center gap-2 px-3 px-10 py-2 text-sm font-semibold leading-5 text-white border rounded-lg bg-sky-700 border-sky-700 hover:border-sky-600 hover:bg-sky-600 hover:text-white focus:ring-3 focus:ring-sky-400/50 active:border-sky-700 active:bg-sky-700 dark:focus:ring-sky-400/90"
+  type="{{if .Type}}{{.Type}}{{else}}button{{ end }}"
+>
+  {{.Text}}
+</button>
