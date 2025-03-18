@@ -10,15 +10,14 @@ type BaseController struct {
 	Writer      http.ResponseWriter
 	Request     *http.Request
 	Templates   *template.Template
-	html		*render.Html
+	view		*render.View
 }
 
 func NewBaseController() *BaseController {
 
-	html := render.NewHtml()
-
+	view := render.NewView()
 	base := &BaseController{
-		html: html,
+		view: view,
 	}
 
 	return base
