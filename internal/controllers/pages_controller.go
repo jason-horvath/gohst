@@ -26,12 +26,12 @@ func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
 	isAuthorized, _ := sm.GetValue(sessionId, "Authorized")
 	log.Println("Is authorized:", isAuthorized)
 	c.Init(w, r)
-	c.html.RenderView(w, "pages/index.html")
+	c.view.Render(w, "pages/index")
 }
 
 func (c *PagesController) About(w http.ResponseWriter, r *http.Request) {
 	c.Init(w, r)
-	c.html.RenderView(w, "pages/about.html")
+	c.view.Render(w, "pages/about")
 }
 
 func (c *PagesController) Post(w http.ResponseWriter, r *http.Request) {
