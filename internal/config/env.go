@@ -68,7 +68,7 @@ func LoadEnv(filePath string) error {
 
 // GetEnv retrieves the value of an environment variable.
 // If the variable is not set, it returns the provided default value (if any).
-func GetEnv(key string, defaultValue ...interface{}) interface{} {
+func GetEnv(key string, defaultValue ...interface{}) any {
     value := os.Getenv(key)
     if value == "" {
         if len(defaultValue) > 0 {
