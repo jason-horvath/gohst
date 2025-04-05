@@ -113,7 +113,6 @@ func (v *View) Render(r http.ResponseWriter, viewName string, data ...interface{
 		log.Println("Error executing template:", err)
 	}
 
-	log.Println("PAGE CONTENT", viewContent.String())
 	td := ViewData{
         Props:   struct{}{}, // Possibly to load other view data
         Content: template.HTML(viewContent.String()),
