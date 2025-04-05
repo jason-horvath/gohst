@@ -10,7 +10,11 @@ import (
 
 type contextKey string
 
+type csrfKey string
+
 const SessionIDKey contextKey = "sessionID"
+
+const CSRFKey csrfKey = "csrfToken"
 
 const SESSION_LENGTH_DEFAULT = 60
 
@@ -93,6 +97,14 @@ func (sm *SessionManager) SetValue(sessionID string, key string, value interface
 func (sm *SessionManager) GetValue(sessionID string, key string) (interface{}, bool) {
 	return sm.store.GetValue(sessionID, key)
 }
+func (sm *SessionManager) GetCSRF(sessionID string) (string, bool) {
+	value, ok := sm.GetValue(sessionID, string(CSRFKey))
+	if !ok {
+		return "", false
+	}
+	return value.(string), true
+}
+
 // Function to check if a session type is valid
 func IsValidSessionType(value string) bool {
 	for _, v := range SESSION_VALID_TYPES {
