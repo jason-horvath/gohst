@@ -46,7 +46,7 @@ export default defineConfig({
       "/static": `http://localhost:${vitePort}`,
     },
     hmr: {
-      delay: 1500, // Wait 1500ms for gohst dev restarts
+      delay: 2000, // Wait 2000ms for gohst dev restarts
     },
   },
 });
