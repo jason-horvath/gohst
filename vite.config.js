@@ -42,6 +42,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: vitePort,
     proxy: {
       "/static": `http://localhost:${vitePort}`,
     },
