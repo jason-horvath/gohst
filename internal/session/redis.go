@@ -76,8 +76,10 @@ func (rsm *RedisSessionManager) StartSession(w http.ResponseWriter, r *http.Requ
 	ctx := context.Background()
 
 	session := &SessionData{
+		ID:      sessionID,
 		Values:  make(map[string]interface{}),
 		Expires: time.Now().Add(30 * time.Minute),
+		manager: rsm,
 	}
 
 	// Encode session to Gob format
