@@ -10,7 +10,7 @@ if [ -f .env ]; then
 fi
 
 # Read APP_PORT from the environment or default to 5000
-APP_PORT=${APP_PORT:-5000}
+APP_PORT=${APP_PORT:-3030}
 
 gohst_log_header() {
     echo "
