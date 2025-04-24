@@ -36,7 +36,11 @@ func NewFileSessionManager(storageDir string) (*FileSessionManager, string) {
 func (fsm *FileSessionManager) StartSession(w http.ResponseWriter, r *http.Request) string {
 	sessionID := GenerateSessionID()
 	sessionLength := GetSessionLength()
-	sessionData := &SessionData{Values: make(map[string]interface{}), Expires: time.Now().Add(sessionLength)}
+	sessionData := &SessionData{
+		ID:    sessionID,
+		Values: make(map[string]interface{}),
+		Expires: time.Now().Add(sessionLength),
+	}
 
 	fsm.mu.Lock()
 	fsm.sessions[sessionID] = sessionData
