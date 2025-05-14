@@ -8,23 +8,27 @@ import (
 
 // Middleware to attach session to request context
 func (sm *SessionManager) SessionMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionData, sessionID := sm.GetSession(r)
-		log.Println("SESSION")
-		if sessionData == nil {
-			sessionID = sm.StartSession(w, r)
-			sessionData = &SessionData{}
-			log.Println("Started a new session with ID:", sessionID)
-		} else {
-		    sm.SetValue(sessionID, "Name", "Jason")
-			name, _ := sm.GetValue(sessionID, "Name")
-			log.Println("Name in session:", name)
-			log.Println("Session store type:", sm.StoreType)
-			log.Println("Session exists with ID:", sessionID)
-		}
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // 1) Load or create raw session data
+        rawData, sid := sm.store.GetSession(r)
+        if rawData == nil {
+            sid = sm.store.StartSession(w, r)
+            rawData, _ = sm.store.GetSession(r)
+            log.Println("Started a new session with ID:", sid)
+        } else {
+            log.Println("Session exists with ID:", sid)
+        }
 
-		// Store session data in request context
-		ctx := context.WithValue(r.Context(), SessionIDKey, sessionID)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+        // 2) Wrap it in our rich Session type
+        sess := &Session{
+            id:      sid,
+            data:    rawData,
+            manager: sm,
+            w:       w,
+        }
+
+        // 3) Put the *Session into context (so handlers can grab it)
+        ctx := context.WithValue(r.Context(), sessionKey, sess)
+        next.ServeHTTP(w, r.WithContext(ctx))
+    })
 }

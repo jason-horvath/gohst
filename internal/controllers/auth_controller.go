@@ -22,16 +22,11 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 
 	type LoginPageData struct {
 		Test string
-		Label types.Label
 		Form types.Form
 	}
 
 	data := LoginPageData{
 		Test: "This is a test",
-		Label: types.Label{
-			For: "email",
-			Text: "Email Address",
-		},
 		Form: types.Form{
 			Method: "POST",
 			Action: "/login", // Adjust as needed
