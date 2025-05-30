@@ -8,7 +8,7 @@ NOTE: The project is ongoing and will continue to evolve with new features and i
 
 ## Features
 
-- 🚀 Hot-reloading Go server using Air
+- 🚀 Hot-reloading using gohst bash scripts
 - 🎨 Vite for frontend assets
 - 🐳 Docker-based MySQL development environment
 - 📦 Session management (File/Redis support)
@@ -20,11 +20,19 @@ NOTE: The project is ongoing and will continue to evolve with new features and i
 
 ```
 gohst/
+├── assets/                     # Build assets
+│   ├── css/                    # Entry point for build css
+│   ├── js/                     # Entry point for build js
+│   ├── storage/                # Stroage for media/user assets
+│   │   ├── images              # Images for builkd
+│   │   └── uploads             # User generated content
 ├── cmd/
 │   ├── dev/                    # Development scripts
-│   │   ├── gohst_server        # ghost hot-reload control
-│   │   ├── docker_sql_build    # Database setup
-│   │   └── docker_sql_clear    # Database cleanup
+│   │   ├── docker_sql_build    # Build docker sql
+│   │   ├── docker_sql_clear    # Clear docker sql
+│   │   ├── gohst_server        # Ghost hot-reload control
+│   │   ├── storage_mgr         # Storage linking and management
+│   │   └── vite_process        # Handles vite process stop/start
 │   └── web/                    # Main application
 ├── database/
 │   ├── migrations/             # SQL migrations
@@ -45,7 +53,7 @@ gohst/
 │   ├── layouts/                # Layout templates
 │   ├── pages/                  # Page templates
 │   └── partials/               # Partial templates
-├── .air.toml                   # Air configuration
+│── tmp                         # Tmp files and logs
 ├── .env                        # Environment variables
 ├── .env.example                # Environment template
 ├── docker-compose.yml          # Docker services
