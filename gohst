@@ -184,7 +184,7 @@ case "$1" in
         echo "  destroy             - Destroy the development environment including docker, sql files: npm, docker, vite, gohst"
         echo "  dev                 - Bring up the development environment: npm, docker, vite, gohst"
         echo "  dev:down            - Bring down the development environment: npm, docker, vite, gohst"
-        echo "  server:start        - Start the air application server"
+        echo "  server:start        - Start the gohst server"
         echo "  server:stop         - Stop the ghost server"
         echo "  docker:sql:build    - Set up database migrations & seeds for docker"
         echo "  docker:sql:clear    - Delete migrations & seeds for docker"
