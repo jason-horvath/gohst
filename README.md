@@ -91,14 +91,14 @@ cp .env.example .env
 Available commands:
 
 - `build` - Set up complete development environment
-- `up` - Start development environment
-- `down` - Stop development environment
-- `destroy` - Remove all development resources
-- `server:start` - Start Air server only
-- `server:stop` - Stop Air server only
+- `dev` - Bring up the development environment: npm, docker, vite, gohst
+- `dev:down` - Bring down the development environment: npm, docker, vite, gohst
+- `server:start` - Start the gohst server
+- `server:stop` - Stop the ghost server
 - `docker:sql:build` - Set up database files
 - `docker:sql:clear` - Clear database files
 - `docker:rebuild` - Rebuild Docker containers
+- `storage:link` - Link assets to the static directory
 
 ## Optional CLI Alias
 
