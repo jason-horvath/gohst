@@ -15,10 +15,10 @@ tmp/*
 *.out
 
 # Database
-docker/mysql/data/*
-!docker/mysql/data/.gitkeep
-docker/mysql/init/*
-!docker/mysql/init/.gitkeep
+docker/postgres/data/*
+!docker/postgres/data/.gitkeep
+docker/postgres/init/*
+!docker/postgres/init/.gitkeep
 
 # Dependency directories
 node_modules/
@@ -56,3 +56,6 @@ Thumbs.db
 # static files
 static/*
 !static/.gitkeep
+
+# pgAdmin
+docker/pgadmin/servers.json
