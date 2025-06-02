@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "GOHST",
+      "Group": "Servers",
+      "Host": "${DB_HOST_DOCKER}",
+      "Port": ${DB_PORT},
+      "Username": "${DB_USER}",
+      "Password": "${DB_PASSWORD}",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "${DB_NAME}"
+    }
+  }
+}

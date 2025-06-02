@@ -1,6 +1,6 @@
 # Gohst 👻
 
-A Go web application starter kit with built-in development tools and modern frontend capabilities. Gohst is designed to provide a solid foundation for building web applications with Go and Vite. The project includes a development environment with Docker, Air, and MySQL, as well as a CLI tool for managing the development workflow. Gohst also includes session management, database migrations, and HTML template rendering.
+A Go web application starter kit with built-in development tools and modern frontend capabilities. Gohst is designed to provide a solid foundation for building web applications with Go and Vite. The project includes a development environment with Docker, Air, and Postgres, as well as a CLI tool for managing the development workflow. Gohst also includes session management, database migrations, and HTML template rendering.
 
 The project is structured to provide a clean separation of concerns and a clear path for extending functionality. Gohst is a great starting point for building web applications with Go and modern frontend tools like Tailwind CSS, Alpine.js, Typescript, and Vite.
 
@@ -10,7 +10,7 @@ NOTE: The project is ongoing and will continue to evolve with new features and i
 
 - 🚀 Hot-reloading Go server using Air
 - 🎨 Vite for frontend assets
-- 🐳 Docker-based MySQL development environment
+- 🐳 Docker-based Postgres development environment
 - 📦 Session management (File/Redis support)
 - 🔄 Database migrations and seeding
 - 🛠️ HTML template rendering with layouts and partials
@@ -30,7 +30,7 @@ gohst/
 │   ├── migrations/             # SQL migrations
 │   └── seeds/                  # SQL seed files
 ├── docker/
-│   └── mysql/                  # MySQL container setup
+│   └── posgres/                # postrges container setup
 ├── internal/
 │   ├── config/                 # Application configuration
 │   ├── controllers/            # HTTP request handlers

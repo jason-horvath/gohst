@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strconv"
 	"sync"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 
 	"gohst/internal/config"
 )
@@ -24,26 +23,26 @@ var (
 
 // InitDB initializes the database connection
 func InitDB() {
-	once.Do(func() { // Ensures this runs only once
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+	once.Do(func() {
+		dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			config.DB.Host,
+			config.DB.Port,
 			config.DB.User,
 			config.DB.Password,
-			config.DB.Host,
-			strconv.Itoa(config.DB.Port),
 			config.DB.DBName,
 		)
 
-		db, err := sql.Open("mysql", dsn)
+		db, err := sql.Open("postgres", dsn)
 		if err != nil {
-			log.Fatalf("Error connecting to MySQL: %v", err)
+			log.Fatalf("Error connecting to Postgres: %v", err)
 		}
 
 		// Ping to verify the connection is working
 		if err = db.Ping(); err != nil {
-			log.Fatalf("MySQL ping failed: %v", err)
+			log.Fatalf("Postgres ping failed: %v", err)
 		}
 
-		log.Println("Connected to MySQL")
+		log.Println("Connected to Postgres")
 
 		Database = &DBManager{DB: db}
 	})

@@ -1,37 +1,37 @@
 services:
-  gohst-mysql:
-    image: mysql:8.3
+  gohst-postgres:
+    image: postgres:16
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "3406:3306"
+      - "5432:5432"
     volumes:
-      - ./docker/mysql/init/init.sql:/etc/mysql/init.sql
-      - ./docker/mysql/data:/docker-entrypoint-initdb.d
-      - gohst-mysql-data:/var/lib/mysql
-    command: ["--init-file", "/etc/mysql/init.sql"]
+      - gohst-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/data:/docker-entrypoint-initdb.d
     networks:
       - gohst-network
 
-  gohst-phpmyadmin:
-    depends_on:
-      - gohst-mysql
-    image: linuxserver/phpmyadmin
+  gohst-pgadmin:
+    image: dpage/pgadmin4:latest
     environment:
-      - PMA_HOST=${DB_HOST_DOCKER}
-      - PMA_USER=${DB_USER}
-      - PMA_PASSWORD=${DB_PASSWORD}
-      - PMA_DATABASE=${DB_NAME}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+      PGADMIN_SERVER_JSON_FILE: "/pgadmin4/servers.json"
     ports:
-      - "8585:80"
+      - "5050:80"
     networks:
       - gohst-network
-
+    depends_on:
+      - gohst-postgres
+    volumes:
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
 networks:
   gohst-network:
     driver: bridge
 
 volumes:
-  gohst-mysql-data:
+  gohst-postgres-data:
     external: false
