@@ -21,29 +21,27 @@ func GenerateToken() (string, error) {
 // CSRFMiddleware is a middleware that protects against CSRF attacks.
 func CSRF(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // Generate a new CSRF token if one doesn't exist in the session
-		var sessionID string
-		var sessionData *session.SessionData
-        sm := session.SM
-        sessionData, sessionID = sm.GetSession(r)
-        if sessionData == nil {
-            sessionManager := session.NewSessionManager()
-            sessionID = sessionManager.StartSession(w, r)
+        // Get session from context (same way your render code does)
+        sess := session.FromContext(r.Context())
+        if sess == nil {
+            http.Error(w, "No session found", http.StatusInternalServerError)
+            return
         }
 
-        token, ok := sm.GetValue(sessionID, "csrfToken")
+        // Check for existing token using the same method your render code uses
+        token, ok := sess.Get("csrfToken")
         if !ok || token == "" {
             newToken, err := GenerateToken()
             if err != nil {
                 http.Error(w, "Internal server error", http.StatusInternalServerError)
                 return
             }
+            sess.Set("csrfToken", newToken)
             token = newToken
-            sm.SetValue(sessionID, "csrfToken", token)
         }
 
         // Validate the CSRF token on POST requests
-        if r.Method == http.MethodPost {
+        if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
             // Get the CSRF token from the request
             requestToken := r.FormValue("csrfToken")
             if requestToken == "" {
@@ -65,7 +63,7 @@ func CSRF(next http.Handler) http.Handler {
                 return
             }
             token = newToken
-            sm.SetValue(sessionID, "csrfToken", token)
+            sess.Set("csrfToken", token)
         }
 
         // Add the CSRF token to the response context for use in templates
