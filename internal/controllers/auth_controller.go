@@ -18,8 +18,6 @@ func NewAuthController() *AuthController {
 }
 
 func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
-	c.Init(w, r)
-
 	type LoginPageData struct {
 		Test string
 		Form types.Form
@@ -57,5 +55,12 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	c.view.Render(w, "auth/login", data)
+	c.Render(w, r, "auth/login", data)
+}
+
+func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
+
+	// Handle the login logic here
+	// For now, just redirect to the index page
+	c.Redirect(w, r, "/", http.StatusSeeOther)
 }
