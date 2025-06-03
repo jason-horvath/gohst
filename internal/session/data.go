@@ -18,7 +18,7 @@ type SessionData struct {
 func GetSessionLength() time.Duration {
 	// Read from config
 	session := config.Session
-	sessionLength := SESSION_LENGTH_DEFAULT
+	sessionLength := config.Session.Length
 
 	if session != nil {
 		if session.Length > 0 {
