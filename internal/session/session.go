@@ -42,6 +42,14 @@ func (s *Session) Get(key string) (interface{}, bool)  {
     return val, ok
 }
 
+func (s *Session) GetCSRF() (interface{}, bool) {
+	if s.data == nil {
+        return nil, false
+    }
+    val, ok := s.data.Values[string(CSRFKey)]
+    return val, ok
+}
+
 // Set writes a value, persists to the store, and re-sets the cookie
 func (s *Session) Set(key string, val interface{}) {
     s.data.Values[key] = val
