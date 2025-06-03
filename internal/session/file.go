@@ -33,7 +33,7 @@ func NewFileSessionManager(storageDir string) (*FileSessionManager, string) {
 }
 
 // StartSession creates a session and writes it to a file
-func (fsm *FileSessionManager) StartSession(w http.ResponseWriter, r *http.Request) string {
+func (fsm *FileSessionManager) StartSession(w http.ResponseWriter, r *http.Request) (*SessionData, string) {
 	sessionID := GenerateSessionID()
 	sessionLength := GetSessionLength()
 	sessionData := &SessionData{
@@ -55,7 +55,7 @@ func (fsm *FileSessionManager) StartSession(w http.ResponseWriter, r *http.Reque
 		HttpOnly: true,
 	})
 
-	return sessionID
+	return sessionData, sessionID
 }
 
 // GetSession retrieves session data from file
