@@ -20,6 +20,8 @@ type SessionConfig struct {
 	Store 		string
 }
 
+const SESSION_LENGTH_DEFAULT = 60
+
 var Session *SessionConfig
 
 func initSession() {
@@ -28,7 +30,7 @@ func initSession() {
 		File: &FileConfig{
 			Path: GetEnv("SESSION_FILE_PATH", "tmp/sessions").(string),
 		},
-		Length: GetEnv("SESSION_LENGTH", 60).(int),
+		Length: GetEnv("SESSION_LENGTH", SESSION_LENGTH_DEFAULT).(int),
 		Name: GetEnv("SESSION_NAME", "session_id").(string),
 		Redis: &RedisConfig{
 			DB: GetEnv("SESSION_REDIS_DB", 0).(int),
