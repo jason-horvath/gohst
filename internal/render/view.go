@@ -8,12 +8,22 @@ import (
 	"os"
 	"path/filepath"
 
+	"gohst/internal/auth"
 	"gohst/internal/utils"
 )
 
+type TemplateData struct {
+    CSRF    		*CSRF      	// CSRF token for form protection
+    User	  		*auth.User      // Pointer to the authenticated user (if any)
+    FlashMessages 	map[string]any  // Slice for any flash messages (success/error)
+	OldFormData    	map[string]any 	// Map for old input values (for form repopulation)
+    Data         	any  			// Additional dynamic data specific to each page
+}
+
 type ViewData struct {
-    Props    interface{}
+    Props    any
     Content  template.HTML
+	CSRF	 *CSRF
 }
 
 type View struct {
@@ -30,11 +40,14 @@ type ViewDirs struct {
 	Components 	string
 }
 
+
+const defaultLayout string = "layout/default"
+
 func NewView() *View {
 	templateFuncs := TemplateFuncs()
 	view := &View{
 		Template: template.New("").Funcs(templateFuncs),
-		Layout: "layout/default",
+		Layout: defaultLayout,
 		Dirs: ViewDirs{
 			Layouts: "layouts",
 			Templates: "templates",
@@ -66,6 +79,7 @@ func (v *View) LoadTemplates() {
 	}
 }
 
+// loadAll loads all templates from the specified directory and parses them into the template engine.
 func (v *View) loadAll() {
 	dirPath := v.Dirs.Templates
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
@@ -103,12 +117,19 @@ func (v *View) loadAll() {
 	log.Println("Loaded Dir:", dirPath, v.Template.DefinedTemplates())
 }
 
-func (v *View) Render(r http.ResponseWriter, viewName string, data ...interface{}) error {
+// Render renders a view with the given name and data. Render the content then the whole view with the layout.
+func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, data ...interface{}) error {
 	var viewContent bytes.Buffer
 	useData := utils.StructEmpty(data)
 	log.Printf("useData type: %T", useData)
+	csrf := GetCSRF(r)
+	templateData := TemplateData{
+		Data: useData,
+		CSRF: csrf,
+	}
+	templateData.Data = useData
 	useViewName := v.Dirs.Views + "/" + viewName
-	err := v.Template.ExecuteTemplate(&viewContent, useViewName, useData)
+	err := v.Template.ExecuteTemplate(&viewContent, useViewName, templateData)
 	if err != nil {
 		log.Println("Error executing template:", err)
 	}
@@ -119,6 +140,23 @@ func (v *View) Render(r http.ResponseWriter, viewName string, data ...interface{
     }
 
 	log.Println("DEFINED TEMPLATES:", v.Template.DefinedTemplates())
-	return v.Template.ExecuteTemplate(r, v.Layout, td)
+	return v.Template.ExecuteTemplate(w, v.Layout, td)
+}
+
+// Set the layout to be used for rendering
+func (v *View) SetLayout(layout string) {
+	if layout != "" {
+		v.Layout = layout
+	} else {
+		v.Layout = defaultLayout
+	}
+}
+
+// Get the lauout to be used for rendering
+func (v *View) GetLayout() string {
+	if v.Layout == "" {
+		return defaultLayout
+	}
+	return v.Layout
 }
 
