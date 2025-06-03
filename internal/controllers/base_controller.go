@@ -2,13 +2,12 @@ package controllers
 
 import (
 	"gohst/internal/render"
+	"gohst/internal/utils"
 	"html/template"
 	"net/http"
 )
 
 type BaseController struct {
-	Writer      http.ResponseWriter
-	Request     *http.Request
 	Templates   *template.Template
 	view		*render.View
 }
@@ -23,11 +22,12 @@ func NewBaseController() *BaseController {
 	return base
 }
 
-func (c *BaseController) Init(w http.ResponseWriter, r *http.Request) {
-	c.Writer = w
-	c.Request = r
+func (c *BaseController) Render(w http.ResponseWriter, r *http.Request, viewName string, data ...interface{}) {
+	useData := utils.StructEmpty(data)
+    c.view.Render(w, r, viewName, useData)
 }
 
-func (c *BaseController) Redirect(w http.ResponseWriter, urlStr string, statusCode int) {
-    http.Redirect(w, c.Request, urlStr, statusCode)
+
+func (c *BaseController) Redirect(w http.ResponseWriter, r *http.Request, urlStr string, statusCode int) {
+    http.Redirect(w, r, urlStr, statusCode)
 }

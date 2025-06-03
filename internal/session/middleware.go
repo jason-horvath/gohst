@@ -10,10 +10,9 @@ import (
 func (sm *SessionManager) SessionMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         // 1) Load or create raw session data
-        rawData, sid := sm.store.GetSession(r)
-        if rawData == nil {
-            sid = sm.store.StartSession(w, r)
-            rawData, _ = sm.store.GetSession(r)
+        sessionData, sid := sm.store.GetSession(r)
+        if sessionData == nil {
+            sessionData, sid = sm.store.StartSession(w, r)
             log.Println("Started a new session with ID:", sid)
         } else {
             log.Println("Session exists with ID:", sid)
@@ -22,7 +21,7 @@ func (sm *SessionManager) SessionMiddleware(next http.Handler) http.Handler {
         // 2) Wrap it in our rich Session type
         sess := &Session{
             id:      sid,
-            data:    rawData,
+            data:    sessionData,
             manager: sm,
             w:       w,
         }

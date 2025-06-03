@@ -6,16 +6,17 @@
     action="{{ url }}/login"
     onsubmit="return false;"
   >
+    {{ .CSRF.Input }}
     <div class="space-y-1">
-      {{ template "components/forms/label" ((index .Form.Fieldset "email").Label) }}
-      {{ template "components/forms/input" ((index .Form.Fieldset "email").Input) }}
+      {{ template "components/forms/label" ((index .Data.Form.Fieldset "email").Label) }}
+      {{ template "components/forms/input" ((index .Data.Form.Fieldset "email").Input) }}
     </div>
     <div class="space-y-1">
-      {{ template "components/forms/label" ((index .Form.Fieldset "password").Label) }}
-      {{ template "components/forms/input" ((index .Form.Fieldset "password").Input) }}
+      {{ template "components/forms/label" ((index .Data.Form.Fieldset "password").Label) }}
+      {{ template "components/forms/input" ((index .Data.Form.Fieldset "password").Input) }}
     </div>
     <div class="flex items-center justify-center">
-      {{ template "components/forms/button" (index .Form.Buttons "submit") }}
+      {{ template "components/forms/button" (index .Data.Form.Buttons "submit") }}
     </div>
   </form>
   <!-- END Form Layouts: Labels On Top -->

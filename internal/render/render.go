@@ -1,6 +1,7 @@
 package render
 
 import (
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -13,7 +14,7 @@ var defaultTmplExt string = "*.html"
 var templates *template.Template
 
 func LoadTemplateDir(dir string, ext ...string) *template.Template{
-    templateExt := "*.html"
+    templateExt := defaultTmplExt
     if len(ext) > 0 && ext[0] != "" {
         templateExt = ext[0]
     }
@@ -60,18 +61,11 @@ func Text(w http.ResponseWriter, text string) {
 	w.Write([]byte(text))
 }
 
-func renderTemplate(w http.ResponseWriter, name string, data interface{}) {
-    log.Println("Available templates:", templates.DefinedTemplates())
-	tmpl := templates.Lookup(name)
-
-    if tmpl == nil {
-        http.Error(w, "The template does not exist.", http.StatusInternalServerError)
-        return
-    }
-
-	// tmpl.Funcs(templateFuncs)
-    err := tmpl.Execute(w, data)
+func JSON(w http.ResponseWriter, data interface{}) {
+    w.Header().Set("Content-Type", "application/json")
+    err := json.NewEncoder(w).Encode(data)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
     }
 }

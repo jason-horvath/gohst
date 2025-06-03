@@ -16,8 +16,6 @@ const SessionIDKey contextKey = "sessionID"
 
 const CSRFKey csrfKey = "csrfToken"
 
-const SESSION_LENGTH_DEFAULT = 60
-
 const SESSION_NAME = "session_id"
 
 const SESSION_STORE_DEFAULT = "file"
@@ -79,7 +77,7 @@ func GenerateSessionID() string {
 }
 
 // StartSession creates a session and stores it in Redis
-func (sm *SessionManager) StartSession(w http.ResponseWriter, r *http.Request) string {
+func (sm *SessionManager) StartSession(w http.ResponseWriter, r *http.Request)(*SessionData, string) {
 	return sm.store.StartSession(w, r)
 }
 
