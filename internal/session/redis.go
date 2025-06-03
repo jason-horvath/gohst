@@ -71,11 +71,11 @@ func GetRedisHostAddr() string {
 }
 
 // StartSession creates a session in Redis using Gob
-func (rsm *RedisSessionManager) StartSession(w http.ResponseWriter, r *http.Request) string {
+func (rsm *RedisSessionManager) StartSession(w http.ResponseWriter, r *http.Request) (*SessionData, string) {
 	sessionID := GenerateSessionID()
 	ctx := context.Background()
 
-	session := &SessionData{
+	sessionData := &SessionData{
 		ID:      sessionID,
 		Values:  make(map[string]interface{}),
 		Expires: time.Now().Add(30 * time.Minute),
@@ -85,10 +85,10 @@ func (rsm *RedisSessionManager) StartSession(w http.ResponseWriter, r *http.Requ
 	// Encode session to Gob format
 	var buf bytes.Buffer
 	encoder := gob.NewEncoder(&buf)
-	err := encoder.Encode(session)
+	err := encoder.Encode(sessionData)
 	if err != nil {
 		log.Println("Error encoding session:", err)
-		return ""
+		return &SessionData{}, ""
 	}
 
 	// Store Gob-encoded session in Redis (expires in 30 minutes)
@@ -106,7 +106,7 @@ func (rsm *RedisSessionManager) StartSession(w http.ResponseWriter, r *http.Requ
 		HttpOnly: true,
 	})
 
-	return sessionID
+	return sessionData, sessionID
 }
 
 // GetSession retrieves session from Redis and decodes Gob
