@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"gohst/internal/render"
-	"log"
 	"net/http"
 
 	"gohst/internal/session"
@@ -21,21 +20,30 @@ func NewPagesController() *PagesController {
 }
 
 func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
-	sm := session.NewSessionManager()
-	_, sessionId := sm.GetSession(r)
-	isAuthorized, _ := sm.GetValue(sessionId, "Authorized")
-	log.Println("Is authorized:", isAuthorized)
-	c.Init(w, r)
-	c.view.Render(w, "pages/index")
+	sess := session.FromContext(r.Context())
+	username, _ := sess.Get("Username") // Example of getting a user from the session
+	data := map[string]interface{}{
+		"SessionID": sess.ID(),
+		"Username":  username,
+	}
+
+	c.Render(w, r, "pages/index", data)
 }
 
 func (c *PagesController) About(w http.ResponseWriter, r *http.Request) {
-	c.Init(w, r)
-	c.view.Render(w, "pages/about")
+	c.Render(w, r, "pages/about")
 }
 
 func (c *PagesController) Post(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	c.Init(w, r)
-	render.Text(w, "This is post " + id)
+
+    response := struct {
+        ID      string `json:"id"`
+        Message string `json:"message"`
+    }{
+        ID:      id,
+        Message: "This is post " + id,
+    }
+
+    render.JSON(w, response)
 }
