@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -193,4 +194,25 @@ func (fsm *FileSessionManager) StartSessionCleanup(interval time.Duration) {
 	}()
 }
 
+// RemoveValue deletes a key from the session data
+func (fsm *FileSessionManager) Remove(sessionID string, key string) error {
+    fsm.mu.Lock()
+    defer fsm.mu.Unlock()
+
+    // Check if session exists in memory
+    session, exists := fsm.sessions[sessionID]
+    if !exists {
+        session = fsm.loadSession(sessionID)
+        if session == nil {
+            return fmt.Errorf("session not found: %s", sessionID)
+        }
+        fsm.sessions[sessionID] = session
+    }
+
+    delete(session.Values, key)
+
+    fsm.saveSession(sessionID, session)
+
+    return nil
+}
 
