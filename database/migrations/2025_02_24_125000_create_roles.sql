@@ -6,7 +6,7 @@ CREATE TABLE roles (
     updated_at      TIMESTAMPTZ DEFAULT (NOW() AT TIME ZONE 'UTC')
 );
 
-CREATE OR REPLACE FUNCTION update_updated_at()
+CREATE OR REPLACE FUNCTION update_updated_at_roles()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = (NOW() AT TIME ZONE 'UTC');
@@ -17,4 +17,4 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_roles_updated_at
 BEFORE UPDATE ON roles
 FOR EACH ROW
-EXECUTE FUNCTION update_updated_at();
+EXECUTE FUNCTION update_updated_at_roles();
