@@ -7,12 +7,15 @@ import (
 
 const APP_DEFAULT_PORT = 3030
 
+const APP_CSRF_KEY string = "csrf_token"
+
 // AppConfig holds the application's configuration values.
 type AppConfig struct {
     EnvKey       string // The application environment (e.g., "development", "production").
     URL          string // The application URL.
 	DistPath	 string // The path to the distribution directory.
     Port         int    // The port on which the application listens.
+	CSRFName		 string // The key used for CSRF protection.
 }
 
 // App is the global application configuration variable.
@@ -27,6 +30,7 @@ func initApp() {
 		URL: GetEnv("APP_URL", "http://localhost:" + strconv.Itoa(usePort)).(string),
 		DistPath: GetEnv("APP_DIST_PATH", "static/dist").(string),
 		Port: GetEnv("APP_PORT", APP_DEFAULT_PORT).(int),
+		CSRFName: APP_CSRF_KEY,
 	}
 }
 
