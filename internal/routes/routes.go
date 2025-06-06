@@ -25,6 +25,7 @@ func SetupRoutes(rc RouteConfig) http.Handler {
 	mux.HandleFunc("GET /about", pages.About)
 	mux.HandleFunc("GET /post/{id}", pages.Post)
 	mux.HandleFunc("GET /login", auth.Login)
+	mux.HandleFunc("POST /login", auth.HandleLogin)
 
 	return middleware.Chain(
 		mux,
