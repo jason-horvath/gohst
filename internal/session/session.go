@@ -7,9 +7,13 @@ import (
 )
 
 type sessKey string
+type flashMessageKey string
+type oldDataKey string
 
 const (
     sessionKey sessKey = "gohst-session" // avoids colliding with SessionIDKey/CSRFKey
+	flashKey flashMessageKey = "_gohst_flash_" // for flash messages
+	oldKey oldDataKey = "_gohst_old_" // for old values in forms/data
 )
 
 // Session is what your handlers will actually use
@@ -62,4 +66,33 @@ func (s *Session) Set(key string, val interface{}) {
         HttpOnly: true,
         Expires:  time.Now().Add(GetSessionLength()),
     })
+}
+
+// SetOld stores a form value for repopulation after a redirect
+func (s *Session) SetOld(key string, val interface{}) {
+    s.Set("_old_"+key, val)
+}
+
+// GetOld retrieves a form value and removes it from the session
+func (s *Session) GetOld(key string) interface{} {
+    oldKey := "_old_" + key
+    val, exists := s.Get(oldKey)
+    if !exists {
+        return nil
+    }
+
+    // Remove after retrieving
+    s.Remove(oldKey)
+    return val
+}
+
+// Remove removes a key from the session
+func (s *Session) Remove(key string) {
+    if s.data == nil {
+        return
+    }
+    delete(s.data.Values, key)
+
+    // Persist the change to the storage backend
+    s.manager.store.Remove(s.id, key)
 }
