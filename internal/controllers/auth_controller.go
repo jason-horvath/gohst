@@ -62,5 +62,5 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Handle the login logic here
 	// For now, just redirect to the index page
-	c.Redirect(w, r, "/", http.StatusSeeOther)
+	c.Redirect(w, r, "/post/123", http.StatusSeeOther)
 }
