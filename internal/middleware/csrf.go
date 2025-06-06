@@ -3,6 +3,7 @@ package middleware
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"gohst/internal/config"
 	"gohst/internal/session"
 	"log"
 	"net/http"
@@ -29,6 +30,7 @@ func CSRF(next http.Handler) http.Handler {
         }
 
         // Check for existing token using the same method your render code uses
+
         token, ok := sess.Get("csrfToken")
         if !ok || token == "" {
             newToken, err := GenerateToken()
@@ -43,7 +45,7 @@ func CSRF(next http.Handler) http.Handler {
         // Validate the CSRF token on POST requests
         if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
             // Get the CSRF token from the request
-            requestToken := r.FormValue("csrfToken")
+            requestToken := r.FormValue(config.App.CSRFName)
             if requestToken == "" {
                 http.Error(w, "CSRF token missing", http.StatusBadRequest)
                 return
