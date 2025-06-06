@@ -11,4 +11,5 @@ type SessionStore interface {
 	SetValue(sessionID string, key string, value interface{})
 	GetValue(sessionID string, key string) (interface{}, bool)
 	GetSessionByID(ctx context.Context, sessionID string) (*SessionData, error)
+	Remove(sessionID string, key string) error
 }
