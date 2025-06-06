@@ -116,6 +116,7 @@ func (rsm *RedisSessionManager) GetSession(r *http.Request) (*SessionData, strin
 		return nil, ""
 	}
 
+	// If session ID is not in the cookie, return nil
 	ctx := context.Background()
 	val, err := rsm.redisClient.Get(ctx, cookie.Value).Bytes()
 	if err != nil {
@@ -189,4 +190,38 @@ func (rsm *RedisSessionManager) GetSessionByID(ctx context.Context, sessionID st
 	}
 
 	return &sessionData, nil
+}
+
+// RemoveValue deletes a key from the session data in Redis
+func (rsm *RedisSessionManager) Remove(sessionID string, key string) error {
+    ctx := context.Background()
+
+    // Get current session data
+    sessionData, err := rsm.GetSessionByID(ctx, sessionID)
+    if err != nil {
+        return err
+    }
+
+    delete(sessionData.Values, key)
+
+    var buf bytes.Buffer
+    encoder := gob.NewEncoder(&buf)
+    err = encoder.Encode(sessionData)
+    if err != nil {
+        return err
+    }
+
+    // Save the updated session back to Redis with the same expiration
+    ttl, err := rsm.redisClient.TTL(ctx, sessionID).Result()
+    if err != nil {
+        ttl = 30 * time.Minute // Default if TTL can't be retrieved
+    }
+
+    // Save the updated session back to Redis
+    err = rsm.redisClient.Set(ctx, sessionID, buf.Bytes(), ttl).Err()
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
