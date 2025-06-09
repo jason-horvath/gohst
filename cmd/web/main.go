@@ -27,10 +27,7 @@ func main() {
 	log.Println("config.Vite:", config.Vite)
 	log.Println("config.DB:", config.DB)
 
-	rc := routes.RouteConfig{
-		SessionManager: session.SM,
-	}
-	mux := routes.SetupRoutes(rc)
+	mux := routes.SetupRoutes()
 	port := config.App.PortStr()
 	server := http.Server{
 		Addr: ":" + port,
