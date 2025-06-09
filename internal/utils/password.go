@@ -24,7 +24,7 @@ type Argon2Params struct {
 func DefaultArgon2Params() *Argon2Params {
     return &Argon2Params{
         Memory:      64 * 1024, // 64MB
-        Iterations:  3,         // Time cost
+        Iterations:  4,         // Time cost
         Parallelism: 2,         // Threads
         SaltLength:  16,        // 16 bytes
         KeyLength:   32,        // 32 bytes
