@@ -33,6 +33,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 					Input: types.Text{
 						Name: "email",
 						Type: "email",
+						ID: "email",
 						Placeholder: "Enter your email.",
 					},
 					Label: types.Label{For: "email", Text: "Email"},
@@ -41,6 +42,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 					Input: types.Text{
 						Name: "password",
 						Type: "password",
+						ID: "password",
 						Placeholder: "Enter your password.",
 					},
 					Label: types.Label{For: "password", Text: "Password"},

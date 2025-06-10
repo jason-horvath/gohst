@@ -1,18 +1,19 @@
 package models
 
 type Role struct {
-	Model
+	ID		  	uint64 `db:"id"`
 	Name        string `db:"name"`
 	Description string `db:"description"`
+	Timestamps
 }
 
 type RoleModel struct {
-	*Model
+	*Model[Role]
 }
 
 func NewRoleModel() *RoleModel {
 	return &RoleModel{
-		Model: NewModel("roles"),
+		Model: NewModel[Role]("roles"),
 	}
 }
 

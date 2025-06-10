@@ -8,11 +8,7 @@ import (
 	"gohst/internal/session"
 )
 
-type RouteConfig struct {
-	SessionManager *session.SessionManager
-}
-
-func SetupRoutes(rc RouteConfig) http.Handler {
+func SetupRoutes() http.Handler {
 	mux := http.NewServeMux()
 
 	// Single handler for all static files
