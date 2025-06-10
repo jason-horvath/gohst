@@ -1,5 +1,14 @@
 {{ define "partial/header" }}
-<header class="p-10">
-  <h1 class="p-2 text-4xl font-bold"><a href="{{ url }}" ?>GOHST</a></h1>
+<header class="flex items-center justify-between p-10 border-b mb-14 border-sky-800">
+  <div>
+     <h1 class="p-2 text-4xl font-bold"><a href="{{ url }}">GOHST</a></h1>
+  </div>
+ <div>
+    <nav class="flex items-center space-x-4">
+      <a href="{{ url }}" class="text-lg">Home</a>
+      <a href="{{ url }}/about" class="text-lg">About</a>
+      <a href="{{ url }}/login" class="text-lg">Login</a>
+    </nav>
+ </div>
 </header>
 {{ end }}
