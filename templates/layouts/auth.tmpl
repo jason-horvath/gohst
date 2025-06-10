@@ -1,0 +1,41 @@
+{{ define "layout/auth" }}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{block "title" .}}Welcome to Gohst{{ end }}</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url }}/static/images/favicon.ico"
+    />
+    {{
+      assetsHead
+    }}
+  </head>
+  <body class="text-white bg-zinc-700">
+    <main class="flex flex-col h-screen bg-gradient-to-b from-zinc-800 to-zinc-700">
+
+      <div class="flex flex-col items-center flex-1 md:flex-row">
+        <div class="flex items-center justify-center w-full py-6 md:w-1/2 md:py-0">
+            <a href="{{ url }}">
+                <img
+                src="{{ url }}/static/images/logo-transparent.png"
+                alt="Gohst"
+                class="w-1/2 h-auto mx-auto md:w-3/5"
+                />
+            </a>
+        </div>
+        <div class="flex items-center justify-center w-full md:w-1/2">
+          {{.Content}}
+        </div>
+      </div>
+
+      <div class="mt-auto">
+        {{template "partial/footer" .}}
+      </div>
+    </main>
+  </body>
+</html>
+{{ end }}
