@@ -13,7 +13,7 @@ func NewAuthController() *AuthController {
     auth := &AuthController{
         BaseController: NewBaseController(),
     }
-
+	auth.view.SetLayout("layout/auth")
     return auth
 }
 
