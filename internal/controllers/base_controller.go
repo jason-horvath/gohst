@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"gohst/internal/render"
+	"gohst/internal/session"
 	"gohst/internal/utils"
 	"html/template"
 	"net/http"
@@ -30,4 +31,9 @@ func (c *BaseController) Render(w http.ResponseWriter, r *http.Request, viewName
 
 func (c *BaseController) Redirect(w http.ResponseWriter, r *http.Request, urlStr string, statusCode int) {
     http.Redirect(w, r, urlStr, statusCode)
+}
+
+func (c *BaseController) SetError(r *http.Request, message string) {
+    sess := session.FromContext(r.Context())
+    sess.SetFlash("error", message)
 }
