@@ -17,7 +17,8 @@ func SetupRoutes() http.Handler {
 
 	pages := controllers.NewPagesController()
 	auth := controllers.NewAuthController()
-	mux.HandleFunc("GET /", pages.Index)
+	mux.HandleFunc("GET /{$}", pages.Index)
+	mux.HandleFunc("GET /", pages.NotFound)
 	mux.HandleFunc("GET /about", pages.About)
 	mux.HandleFunc("GET /post/{id}", pages.Post)
 	mux.HandleFunc("GET /login", auth.Login)

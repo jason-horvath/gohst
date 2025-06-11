@@ -59,3 +59,9 @@ func (c *PagesController) Post(w http.ResponseWriter, r *http.Request) {
 
     render.JSON(w, response)
 }
+
+// NotFound handles 404 errors
+func (c *PagesController) NotFound(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusNotFound)
+    c.Render(w, r, "pages/404")
+}

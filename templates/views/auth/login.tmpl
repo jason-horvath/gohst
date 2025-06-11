@@ -7,13 +7,14 @@
     method="post"
   >
     {{ .CSRF.Input }}
+    {{ $fields := .Data.Form.Fieldset }}
     <div class="space-y-1">
-      {{ template "components/forms/label" ((index .Data.Form.Fieldset "email").Label) }}
-      {{ template "components/forms/input" ((index .Data.Form.Fieldset "email").Input) }}
+      {{ template "components/forms/label" ((index $fields "email").Label) }}
+      {{ template "components/forms/input" ((index $fields "email").Input)}}
     </div>
     <div class="space-y-1">
-      {{ template "components/forms/label" ((index .Data.Form.Fieldset "password").Label) }}
-      {{ template "components/forms/input" ((index .Data.Form.Fieldset "password").Input) }}
+      {{ template "components/forms/label" ((index $fields "password").Label) }}
+      {{ template "components/forms/input" ((index $fields "password").Input) }}
     </div>
     <div class="flex items-center justify-center">
       {{ template "components/forms/button" (index .Data.Form.Buttons "submit") }}

@@ -9,15 +9,16 @@ import (
 	"path/filepath"
 
 	"gohst/internal/auth"
+	"gohst/internal/session"
 	"gohst/internal/utils"
 )
 
 type TemplateData struct {
-    CSRF    		*CSRF      	// CSRF token for form protection
-    User	  		*auth.User      // Pointer to the authenticated user (if any)
-    FlashMessages 	map[string]any  // Slice for any flash messages (success/error)
-	OldFormData    	map[string]any 	// Map for old input values (for form repopulation)
-    Data         	any  			// Additional dynamic data specific to each page
+    CSRF    		*CSRF      			// CSRF token for form protection
+    Auth	  		*auth.AuthData      // Pointer to the authenticated user (if any)
+    FlashMessages 	map[string]any 		// Slice for any flash messages (success/error)
+	OldData    	map[string]any 			// Map for old input values (for form repopulation)
+    Data         	any  				// Additional dynamic data specific to each page
 }
 
 type ViewData struct {
@@ -119,13 +120,19 @@ func (v *View) loadAll() {
 
 // Render renders a view with the given name and data. Render the content then the whole view with the layout.
 func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, data ...interface{}) error {
+	type authData auth.AuthData
 	var viewContent bytes.Buffer
 	useData := utils.StructEmpty(data)
-	log.Printf("useData type: %T", useData)
+	 // Get session
+    sess := session.FromContext(r.Context())
+
 	csrf := GetCSRF(r)
 	templateData := TemplateData{
-		Data: useData,
 		CSRF: csrf,
+		Auth: getAuthData(sess),
+		Data: useData,
+		FlashMessages: sess.GetAllFlash(),
+        OldData:   sess.GetAllOld(),
 	}
 	templateData.Data = useData
 	useViewName := v.Dirs.Views + "/" + viewName
@@ -141,6 +148,15 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, d
 
 	log.Println("DEFINED TEMPLATES:", v.Template.DefinedTemplates())
 	return v.Template.ExecuteTemplate(w, v.Layout, td)
+}
+
+// Helper function to extract auth data
+func getAuthData(sess *session.Session) *auth.AuthData {
+    authData, ok := sess.Get("auth")
+    if !ok || authData == nil {
+        return nil
+    }
+    return authData.(*auth.AuthData)
 }
 
 // Set the layout to be used for rendering
