@@ -68,6 +68,49 @@ func (s *Session) Set(key string, val interface{}) {
     })
 }
 
+// SetFlash stores a flash message that will be displayed once
+func (s *Session) SetFlash(key string, val interface{}) {
+    flashKey := string(flashKey) + key
+    s.Set(flashKey, val)
+}
+
+// GetFlash retrieves a flash message and removes it from the session
+func (s *Session) GetFlash(key string) interface{} {
+    fullKey := string(flashKey) + key
+    val, exists := s.Get(fullKey)
+    if !exists {
+        return nil
+    }
+
+    // Remove after retrieving
+    s.Remove(fullKey)
+    return val
+}
+
+// GetAllFlash retrieves all flash messages and removes them
+func (s *Session) GetAllFlash() map[string]interface{} {
+    if s.data == nil {
+        return nil
+    }
+
+    flashMessages := make(map[string]interface{})
+    prefix := string(flashKey)
+    prefixLen := len(prefix)
+
+    // Find all keys with the flash prefix
+    for key, val := range s.data.Values {
+        if len(key) > prefixLen && key[:prefixLen] == prefix {
+            // Extract the actual key name without prefix
+            actualKey := key[prefixLen:]
+            flashMessages[actualKey] = val
+            // Remove after retrieving
+            s.Remove(key)
+        }
+    }
+
+    return flashMessages
+}
+
 // SetOld stores a form value for repopulation after a redirect
 func (s *Session) SetOld(key string, val interface{}) {
     s.Set("_old_"+key, val)
@@ -84,6 +127,30 @@ func (s *Session) GetOld(key string) interface{} {
     // Remove after retrieving
     s.Remove(oldKey)
     return val
+}
+
+// GetAllOld retrieves all old form values and removes them from the session
+func (s *Session) GetAllOld() map[string]interface{} {
+    if s.data == nil {
+        return nil
+    }
+
+    oldValues := make(map[string]interface{})
+    prefix := string(oldKey)
+    prefixLen := len(prefix)
+
+    // Find all keys with the old prefix
+    for key, val := range s.data.Values {
+        if len(key) > prefixLen && key[:prefixLen] == prefix {
+            // Extract the actual key name without prefix
+            actualKey := key[prefixLen:]
+            oldValues[actualKey] = val
+            // Remove after retrieving
+            s.Remove(key)
+        }
+    }
+
+    return oldValues
 }
 
 // Remove removes a key from the session
