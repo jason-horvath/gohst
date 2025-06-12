@@ -24,7 +24,7 @@ func NewBaseController() *BaseController {
 }
 
 func (c *BaseController) Render(w http.ResponseWriter, r *http.Request, viewName string, data ...interface{}) {
-	useData := utils.StructEmpty(data)
+	useData := utils.StructSafe(data)
     c.view.Render(w, r, viewName, useData)
 }
 
