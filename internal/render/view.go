@@ -120,21 +120,21 @@ func (v *View) loadAll() {
 
 // Render renders a view with the given name and data. Render the content then the whole view with the layout.
 func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, data ...interface{}) error {
-	type authData auth.AuthData
 	var viewContent bytes.Buffer
-	useData := utils.StructEmpty(data)
-	 // Get session
+	useData := utils.StructSafe(data)
     sess := session.FromContext(r.Context())
-
 	csrf := GetCSRF(r)
+	authData := auth.GetAuthData(sess)
+
+	// Define template data for globlal use in templates
 	templateData := TemplateData{
 		CSRF: csrf,
-		Auth: getAuthData(sess),
+		Auth: authData,
 		Data: useData,
 		FlashMessages: sess.GetAllFlash(),
         OldData:   sess.GetAllOld(),
 	}
-	templateData.Data = useData
+
 	useViewName := v.Dirs.Views + "/" + viewName
 	err := v.Template.ExecuteTemplate(&viewContent, useViewName, templateData)
 	if err != nil {
@@ -148,15 +148,6 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, d
 
 	log.Println("DEFINED TEMPLATES:", v.Template.DefinedTemplates())
 	return v.Template.ExecuteTemplate(w, v.Layout, td)
-}
-
-// Helper function to extract auth data
-func getAuthData(sess *session.Session) *auth.AuthData {
-    authData, ok := sess.Get("auth")
-    if !ok || authData == nil {
-        return nil
-    }
-    return authData.(*auth.AuthData)
 }
 
 // Set the layout to be used for rendering

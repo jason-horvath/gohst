@@ -51,9 +51,25 @@ func (m *Model[T]) WithTransaction(fn func(*sql.Tx) error) error {
 }
 
 // FindByID retrieves a record by ID.
-func (m *Model[T]) FindByID(id uint64, dest ...any) error {
+func (m *Model[T]) FindByID(id uint64) (*T, error) {
 	query := "SELECT * FROM " + m.tableName + " WHERE id = $1"
-	return m.db.QueryRow(query, id).Scan(dest...)
+	return m.FirstOf(query, id)
+}
+
+// FindByField returns records that match the specified field value.
+// Example: FindByField("email", "user@example.com")
+func (m *Model[T]) FindByField(fieldName string, value interface{}) ([]T, error) {
+	queryTpl := /*sql*/ `SELECT * FROM %s WHERE %s = $1`
+    query := fmt.Sprintf(queryTpl, m.tableName, fieldName)
+    return m.AllOf(query, value)
+}
+
+// FindOneByField returns a single record that matches the specified field value.
+// Example: FindOneByField("email", "user@example.com")
+func (m *Model[T]) FindOneByField(fieldName string, value interface{}) (*T, error) {
+	queryTpl := /*sql*/ `SELECT * FROM %s WHERE %s = $1 LIMIT 1`
+    query := fmt.Sprintf(queryTpl, m.tableName, fieldName)
+    return m.FirstOf(query, value)
 }
 
 // Delete removes a record by ID.

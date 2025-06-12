@@ -10,10 +10,18 @@ import (
 )
 
 const authKey = "_gohst_auth_"
+type AuthData struct {
+    UserID     uint64
+    Email      string
+    Name       string
+    IsAdmin    bool
+    LoggedInAt time.Time
+}
 
 // Login attempts to authenticate a user with email and password
 // Returns the authenticated user and any error that occurred
 func Login(sess *session.Session, email, password string) (*models.User, error) {
+
     // Find user in database
     userModel := models.NewUserModel()
     user, err := userModel.FindByEmail(email)
@@ -27,12 +35,22 @@ func Login(sess *session.Session, email, password string) (*models.User, error) 
         return nil, errors.New("invalid credentials")
     }
 
+	roleModel := models.NewRoleModel()
+
+	role, err := roleModel.FindByID(user.RoleID)
+
+	if err != nil {
+		return nil, errors.New("role not found")
+	}
+
+	isAdmin := role.Name == "admin"
+
     // Store authentication data in session
     authData := &AuthData{
         UserID:     user.ID,
         Email:      user.Email,
         Name:       user.FirstName,
-        IsAdmin:    user.RoleID == 1,
+        IsAdmin:    isAdmin,
         LoggedInAt: time.Now(),
     }
 
