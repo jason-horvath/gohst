@@ -3,10 +3,11 @@ package controllers
 import (
 	"net/http"
 
-	"gohst/internal/models"
+	"gohst/internal/auth"
 	"gohst/internal/session"
 	"gohst/internal/types"
 	"gohst/internal/utils"
+	"gohst/internal/validation"
 )
 type AuthController struct {
 	*BaseController
@@ -21,10 +22,13 @@ func NewAuthController() *AuthController {
 }
 
 func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
+	sess := session.FromContext(r.Context())
 	type LoginPageData struct {
 		Test string
 		Form types.Form
 	}
+
+	emailValue, _ := sess.PeekOld("email")
 
 	data := LoginPageData{
 		Test: "This is a test",
@@ -38,6 +42,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 						Type: "email",
 						ID: "email",
 						Placeholder: "Enter your email.",
+						Value: utils.StringOr(emailValue, ""),
 					},
 					Label: types.Label{For: "email", Text: "Email"},
 				},
@@ -63,6 +68,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	c.Render(w, r, "auth/login", data)
 }
 
+// Handle the login info that is submitted from the form
 func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r.Context())
 
@@ -78,16 +84,22 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
     password := r.FormValue("password")
 	sess.SetOld("email", email)
 
-    // Validate input
+	// Validate input
     if email == "" || password == "" {
         c.SetError(r, "Email and password are required")
         c.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
 
+
+	if !validation.IsEmail(email) {
+		c.SetError(r, "Invalid email format")
+		c.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
     // Find user in database
-    userModel := models.NewUserModel()
-    user, err := userModel.FindByEmail(email)
+	user, err := auth.Login(sess, email, password)
 
     if err != nil {
         c.SetError(r, "Invalid email or password")
@@ -102,9 +114,6 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
         c.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
-
-    sess.Set("UserID", user.ID)
-    sess.Set("Email", user.Email)
 
     // Redirect to dashboard or home page
     c.Redirect(w, r, "/", http.StatusSeeOther)
