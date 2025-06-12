@@ -38,7 +38,7 @@ func (s *Session) ID() string {
 }
 
 // Get returns a value (and whether it was present)
-func (s *Session) Get(key string) (interface{}, bool)  {
+func (s *Session) Get(key string) (any, bool)  {
     if s.data == nil {
         return nil, false
     }
@@ -46,7 +46,7 @@ func (s *Session) Get(key string) (interface{}, bool)  {
     return val, ok
 }
 
-func (s *Session) GetCSRF() (interface{}, bool) {
+func (s *Session) GetCSRF() (any, bool) {
 	if s.data == nil {
         return nil, false
     }
@@ -55,7 +55,7 @@ func (s *Session) GetCSRF() (interface{}, bool) {
 }
 
 // Set writes a value, persists to the store, and re-sets the cookie
-func (s *Session) Set(key string, val interface{}) {
+func (s *Session) Set(key string, val any) {
     s.data.Values[key] = val
     s.manager.store.SetValue(s.id, key, val)
     // refresh cookie so client sees it
@@ -69,13 +69,13 @@ func (s *Session) Set(key string, val interface{}) {
 }
 
 // SetFlash stores a flash message that will be displayed once
-func (s *Session) SetFlash(key string, val interface{}) {
+func (s *Session) SetFlash(key string, val any) {
     flashKey := string(flashKey) + key
     s.Set(flashKey, val)
 }
 
 // GetFlash retrieves a flash message and removes it from the session
-func (s *Session) GetFlash(key string) interface{} {
+func (s *Session) GetFlash(key string) any {
     fullKey := string(flashKey) + key
     val, exists := s.Get(fullKey)
     if !exists {
@@ -88,12 +88,12 @@ func (s *Session) GetFlash(key string) interface{} {
 }
 
 // GetAllFlash retrieves all flash messages and removes them
-func (s *Session) GetAllFlash() map[string]interface{} {
+func (s *Session) GetAllFlash() map[string]any {
     if s.data == nil {
         return nil
     }
 
-    flashMessages := make(map[string]interface{})
+    flashMessages := make(map[string]any)
     prefix := string(flashKey)
     prefixLen := len(prefix)
 
@@ -112,13 +112,13 @@ func (s *Session) GetAllFlash() map[string]interface{} {
 }
 
 // SetOld stores a form value for repopulation after a redirect
-func (s *Session) SetOld(key string, val interface{}) {
-    s.Set("_old_"+key, val)
+func (s *Session) SetOld(key string, val any) {
+    s.Set(string(oldKey) + key, val)
 }
 
 // GetOld retrieves a form value and removes it from the session
-func (s *Session) GetOld(key string) interface{} {
-    oldKey := "_old_" + key
+func (s *Session) GetOld(key string) any {
+    oldKey := string(oldKey) + key
     val, exists := s.Get(oldKey)
     if !exists {
         return nil
@@ -130,12 +130,12 @@ func (s *Session) GetOld(key string) interface{} {
 }
 
 // GetAllOld retrieves all old form values and removes them from the session
-func (s *Session) GetAllOld() map[string]interface{} {
+func (s *Session) GetAllOld() map[string]any {
     if s.data == nil {
         return nil
     }
 
-    oldValues := make(map[string]interface{})
+    oldValues := make(map[string]any)
     prefix := string(oldKey)
     prefixLen := len(prefix)
 
@@ -151,6 +151,48 @@ func (s *Session) GetAllOld() map[string]interface{} {
     }
 
     return oldValues
+}
+
+// Add these methods that don't clear data
+func (s *Session) PeekOld(key string) (any, bool) {
+    return s.Get(string(oldKey) + key)
+}
+
+// Add these methods that don't clear data
+func (s *Session) PeekFlash(key string) (any, bool) {
+    return s.Get(string(flashKey) + key)
+}
+
+// Similar to GetAllFlash but without clearing
+func (s *Session) PeekAllFlash() map[string]any {
+    return s.getKeysByPrefix(string(flashKey))
+}
+
+// Similarly for old data
+func (s *Session) PeekAllOld() map[string]any {
+    return s.getKeysByPrefix(string(oldKey))
+}
+
+// getKeysByPrefix retrieves all values with a specific prefix without removing them
+func (s *Session) getKeysByPrefix(prefix string) map[string]any {
+    if s.data == nil {
+        return nil
+    }
+
+    result := make(map[string]any)
+    prefixLen := len(prefix)
+
+    // Find all keys with the given prefix
+    for key, val := range s.data.Values {
+        if len(key) > prefixLen && key[:prefixLen] == prefix {
+            // Extract the actual key name without prefix
+            actualKey := key[prefixLen:]
+            result[actualKey] = val
+            // No removal - this is the key difference from GetAllFlash/GetAllOld
+        }
+    }
+
+    return result
 }
 
 // Remove removes a key from the session
