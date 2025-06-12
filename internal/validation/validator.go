@@ -6,7 +6,7 @@ type Validator struct {
 }
 
 // New creates a new form validator
-func New() *Validator {
+func NewValidator() *Validator {
     return &Validator{
         errors: make(map[string]string),
     }
