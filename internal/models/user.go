@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 )
 type User struct {
@@ -27,10 +26,7 @@ func NewUserModel() *UserModel {
 
 // FindByEmail finds a user by email
 func (m *UserModel) FindByEmail(email string) (*User, error) {
-	user := &User{}
-	query := fmt.Sprintf(/*sql*/ `SELECT * FROM %s WHERE email = $1`, m.GetTableName())
-
-	user, err := m.FirstOf(query, email)
+	user, err := m.FindOneByField("email" , email)
 
 	if err != nil {
 		return nil, err
