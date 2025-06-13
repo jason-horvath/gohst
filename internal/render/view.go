@@ -16,7 +16,7 @@ import (
 type TemplateData struct {
     CSRF    		*CSRF      			// CSRF token for form protection
     Auth	  		*auth.AuthData      // Pointer to the authenticated user (if any)
-    FlashMessages 	map[string]any 		// Slice for any flash messages (success/error)
+    Flash 	map[string]any 		// Slice for any flash messages (success/error)
 	OldData    	map[string]any 			// Map for old input values (for form repopulation)
     Data         	any  				// Additional dynamic data specific to each page
 }
@@ -131,7 +131,7 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, d
 		CSRF: csrf,
 		Auth: authData,
 		Data: useData,
-		FlashMessages: sess.GetAllFlash(),
+		Flash: sess.GetAllFlash(),
         OldData:   sess.GetAllOld(),
 	}
 
