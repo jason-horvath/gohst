@@ -26,37 +26,67 @@ type FileSessionManager struct {
 
 // NewFileSessionManager initializes a file-based session manager
 func NewFileSessionManager(storageDir string) (*FileSessionManager, string) {
-	os.MkdirAll(storageDir, 0755) // Ensure session directory exists
-	return &FileSessionManager{
-		sessions: make(map[string]*SessionData),
-		dir:      storageDir,
-	}, "file"
+    // Convert to absolute path if relative
+    if !filepath.IsAbs(storageDir) {
+        // Get current working directory
+        cwd, err := os.Getwd()
+        if err == nil {
+            storageDir = filepath.Join(cwd, storageDir)
+            log.Println("Using absolute session path:", storageDir)
+        }
+    }
+
+    os.MkdirAll(storageDir, 0755) // Ensure session directory exists
+    return &FileSessionManager{
+        sessions: make(map[string]*SessionData),
+        dir:      storageDir,
+    }, "file"
 }
 
-// StartSession creates a session and writes it to a file
 func (fsm *FileSessionManager) StartSession(w http.ResponseWriter, r *http.Request) (*SessionData, string) {
-	sessionID := GenerateSessionID()
-	sessionLength := GetSessionLength()
-	sessionData := &SessionData{
-		ID:    sessionID,
-		Values: make(map[string]interface{}),
-		Expires: time.Now().Add(sessionLength),
-	}
+    // First check if a valid session already exists
+    if r != nil {
+        cookie, err := r.Cookie(SESSION_NAME)
+        if err == nil && cookie.Value != "" {
+            // Try to load existing session from file
+            existingSession := fsm.loadSession(cookie.Value)
+			log.Println("Checking for existing session:", existingSession)
+            if existingSession != nil && time.Now().Before(existingSession.Expires) {
+                // Valid session found, use it
+                fsm.mu.Lock()
+                fsm.sessions[cookie.Value] = existingSession // Update memory cache
+                fsm.mu.Unlock()
+                log.Printf("Reusing existing session: %s", cookie.Value)
+                return existingSession, cookie.Value
+            }
+        }
+    }
 
-	fsm.mu.Lock()
-	fsm.sessions[sessionID] = sessionData
-	fsm.mu.Unlock()
+    // No valid session found, create a new one
+    sessionID := GenerateSessionID()
+    sessionLength := GetSessionLength()
+    sessionData := &SessionData{
+        ID:      sessionID,
+        Values:  make(map[string]any),
+        Expires: time.Now().Add(sessionLength),
+    }
 
-	fsm.saveSession(sessionID, sessionData)
+    fsm.mu.Lock()
+    fsm.sessions[sessionID] = sessionData
+    fsm.mu.Unlock()
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     SESSION_NAME,
-		Value:    sessionID,
-		Path:     "/",
-		HttpOnly: true,
-	})
+    fsm.saveSession(sessionID, sessionData)
 
-	return sessionData, sessionID
+    http.SetCookie(w, &http.Cookie{
+        Name:     SESSION_NAME,
+        Value:    sessionID,
+        Path:     "/",
+        HttpOnly: true,
+        Expires:  time.Now().Add(sessionLength),
+    })
+
+    log.Printf("Created new session: %s", sessionID)
+    return sessionData, sessionID
 }
 
 // GetSession retrieves session data from file
@@ -98,12 +128,29 @@ func (fsm *FileSessionManager) GetSession(r *http.Request) (*SessionData, string
 
 // SetValue stores a value in a session file
 func (fsm *FileSessionManager) SetValue(sessionID string, key string, value interface{}) {
-	fsm.mu.Lock()
-	if session, exists := fsm.sessions[sessionID]; exists {
-		session.Values[key] = value
-		fsm.saveSession(sessionID, session)
-	}
-	fsm.mu.Unlock()
+    fsm.mu.Lock()
+    defer fsm.mu.Unlock()
+
+    session, exists := fsm.sessions[sessionID]
+    if !exists {
+        // Try to load from file if not in memory
+        session = fsm.loadSession(sessionID)
+        if session != nil {
+            fsm.sessions[sessionID] = session
+        } else {
+            // Create new session if doesn't exist
+            session = &SessionData{
+                ID:      sessionID,
+                Values:  make(map[string]any),
+                Expires: time.Now().Add(GetSessionLength()),
+            }
+            fsm.sessions[sessionID] = session
+        }
+    }
+
+    // Now we have a valid session
+    session.Values[key] = value
+    fsm.saveSession(sessionID, session)
 }
 
 // GetValue retrieves a value from a session file
@@ -118,28 +165,60 @@ func (fsm *FileSessionManager) GetValue(sessionID string, key string) (interface
 }
 
 // Save session to file
-func (fsm *FileSessionManager) saveSession(sessionID string, session *SessionData) {
-	filePath := filepath.Join(fsm.dir, sessionID+SESSION_FILE_EXT)
-	file, err := os.Create(filePath)
-	if err != nil {
-		log.Println("Error saving session:", err)
-		return
-	}
-	defer file.Close()
-	gob.NewEncoder(file).Encode(session)
+func (fsm *FileSessionManager) saveSession(sessionID string, session *SessionData) error {
+    // Create a temporary file first
+    tempPath := filepath.Join(fsm.dir, sessionID+".tmp")
+    file, err := os.Create(tempPath)
+    if err != nil {
+        return err
+    }
+
+    // Encode to temporary file
+    if err := gob.NewEncoder(file).Encode(session); err != nil {
+        file.Close()
+        os.Remove(tempPath)
+        return err
+    }
+
+    // Ensure all data is written to disk
+    if err := file.Sync(); err != nil {
+        file.Close()
+        os.Remove(tempPath)
+        return err
+    }
+
+    // Close file
+    if err := file.Close(); err != nil {
+        os.Remove(tempPath)
+        return err
+    }
+
+    // Rename to final destination (atomic operation on most filesystems)
+    finalPath := filepath.Join(fsm.dir, sessionID+SESSION_FILE_EXT)
+    return os.Rename(tempPath, finalPath)
 }
 
 // Load session from file
 func (fsm *FileSessionManager) loadSession(sessionID string) *SessionData {
-	filePath := filepath.Join(fsm.dir, sessionID+SESSION_FILE_EXT)
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil
-	}
-	defer file.Close()
-	var session SessionData
-	gob.NewDecoder(file).Decode(&session)
-	return &session
+    filePath := filepath.Join(fsm.dir, sessionID+SESSION_FILE_EXT)
+    log.Printf("Attempting to load session from: %s", filePath)
+
+    file, err := os.Open(filePath)
+    if err != nil {
+        log.Printf("Error opening session file: %v", err)
+        return nil
+    }
+    defer file.Close()
+
+    var session SessionData
+    if err := gob.NewDecoder(file).Decode(&session); err != nil {
+        log.Printf("Error decoding session: %v", err)
+        os.Remove(filePath)
+        return nil
+    }
+
+    log.Printf("Successfully loaded session: %s", sessionID)
+    return &session
 }
 
 // GetSessionByID fetches session data directly using session ID
@@ -216,3 +295,21 @@ func (fsm *FileSessionManager) Remove(sessionID string, key string) error {
     return nil
 }
 
+// Save saves the entire session
+func (fsm *FileSessionManager) Save(sessionID string, session *SessionData) error {
+    fsm.mu.Lock()
+    defer fsm.mu.Unlock()
+
+    fsm.sessions[sessionID] = session
+    return fsm.saveSession(sessionID, session)
+}
+
+// Delete removes the entire session
+func (fsm *FileSessionManager) Delete(sessionID string) error {
+    fsm.mu.Lock()
+    defer fsm.mu.Unlock()
+
+    delete(fsm.sessions, sessionID)
+    filePath := filepath.Join(fsm.dir, sessionID+SESSION_FILE_EXT)
+    return os.Remove(filePath)
+}

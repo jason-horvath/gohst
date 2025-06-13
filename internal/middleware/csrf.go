@@ -1,23 +1,12 @@
 package middleware
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"gohst/internal/config"
 	"gohst/internal/session"
+	"gohst/internal/utils"
 	"log"
 	"net/http"
 )
-
-// GenerateToken generates a new CSRF token.
-func GenerateToken() (string, error) {
-    b := make([]byte, 32)
-    _, err := rand.Read(b)
-    if err != nil {
-        return "", err
-    }
-    return base64.StdEncoding.EncodeToString(b), nil
-}
 
 // CSRFMiddleware is a middleware that protects against CSRF attacks.
 func CSRF(next http.Handler) http.Handler {
@@ -31,9 +20,9 @@ func CSRF(next http.Handler) http.Handler {
 
         // Check for existing token using the same method your render code uses
 
-        token, ok := sess.Get("csrfToken")
+        token, ok := sess.GetCSRF()
         if !ok || token == "" {
-            newToken, err := GenerateToken()
+            newToken, err := utils.GenerateCSRF()
             if err != nil {
                 http.Error(w, "Internal server error", http.StatusInternalServerError)
                 return
@@ -50,7 +39,8 @@ func CSRF(next http.Handler) http.Handler {
                 http.Error(w, "CSRF token missing", http.StatusBadRequest)
                 return
             }
-
+			log.Println("CSRF token from request:", requestToken)
+			log.Println("CSRF existingt:", token)
             // Compare the session token with the request token
             if token != requestToken {
                 log.Println("CSRF token invalid")
@@ -58,14 +48,7 @@ func CSRF(next http.Handler) http.Handler {
                 return
             }
 
-            // Generate a new CSRF token after successful validation
-            newToken, err := GenerateToken()
-            if err != nil {
-                http.Error(w, "Internal server error", http.StatusInternalServerError)
-                return
-            }
-            token = newToken
-            sess.Set("csrfToken", token)
+
         }
 
         // Add the CSRF token to the response context for use in templates

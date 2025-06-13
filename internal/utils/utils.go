@@ -1,6 +1,10 @@
 package utils
 
-import "fmt"
+import (
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+)
 
 // EmptyStruct is good for coalescing variatic optional parameters in func calls
 func StructSafe(data ...interface{}) interface{} {
@@ -32,4 +36,14 @@ func StringOr(val any, defaultVal string) string {
 
     // Convert the value to string
     return fmt.Sprint(val)
+}
+
+// GenerateToken generates a new CSRF token.
+func GenerateCSRF() (string, error) {
+    b := make([]byte, 32)
+    _, err := rand.Read(b)
+    if err != nil {
+        return "", err
+    }
+    return base64.StdEncoding.EncodeToString(b), nil
 }

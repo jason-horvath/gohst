@@ -15,7 +15,7 @@ type AppConfig struct {
     URL          string // The application URL.
 	DistPath	 string // The path to the distribution directory.
     Port         int    // The port on which the application listens.
-	CSRFName		 string // The key used for CSRF protection.
+	CSRFName	 string // The key used for CSRF protection.
 }
 
 // App is the global application configuration variable.

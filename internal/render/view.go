@@ -16,15 +16,16 @@ import (
 type TemplateData struct {
     CSRF    		*CSRF      			// CSRF token for form protection
     Auth	  		*auth.AuthData      // Pointer to the authenticated user (if any)
-    FlashMessages 	map[string]any 		// Slice for any flash messages (success/error)
-	OldData    	map[string]any 			// Map for old input values (for form repopulation)
+    Flash 	        map[string]any 		// Slice for any flash messages (success/error)
+	OldData    	    map[string]any 			// Map for old input values (for form repopulation)
     Data         	any  				// Additional dynamic data specific to each page
 }
 
 type ViewData struct {
+	CSRF	 *CSRF
+	Auth	 *auth.AuthData      // Pointer to the authenticated user (if any)
     Props    any
     Content  template.HTML
-	CSRF	 *CSRF
 }
 
 type View struct {
@@ -131,7 +132,7 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, d
 		CSRF: csrf,
 		Auth: authData,
 		Data: useData,
-		FlashMessages: sess.GetAllFlash(),
+		Flash: sess.GetAllFlash(),
         OldData:   sess.GetAllOld(),
 	}
 
@@ -142,6 +143,8 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, d
 	}
 
 	td := ViewData{
+		CSRF: csrf,
+		Auth: authData,
         Props:   struct{}{}, // Possibly to load other view data
         Content: template.HTML(viewContent.String()),
     }
