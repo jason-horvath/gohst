@@ -112,3 +112,13 @@ func IsValidSessionType(value string) bool {
 	}
 	return false
 }
+
+// Save saves the entire session data
+func (sm *SessionManager) Save(sessionID string, session *SessionData) error {
+    return sm.store.Save(sessionID, session)
+}
+
+// Delete removes an entire session
+func (sm *SessionManager) Delete(sessionID string) error {
+    return sm.store.Delete(sessionID)
+}
