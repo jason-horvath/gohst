@@ -86,14 +86,14 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Validate input
     if email == "" || password == "" {
-        c.SetError(r, "Email and password are required")
+        sess.SetFlash("login_error", "Email and password are required")
         c.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
 
 
 	if !validation.IsEmail(email) {
-		c.SetError(r, "Invalid email format")
+		sess.SetFlash("login_error", "Invalid email format")
 		c.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -102,7 +102,7 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	user, err := auth.Login(sess, email, password)
 
     if err != nil {
-        c.SetError(r, "Invalid email or password")
+        sess.SetFlash("login_error", "Invalid email or password")
         c.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
@@ -110,7 +110,7 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
     // Verify password
 	passwordOk, _ := utils.CheckPassword(password, user.PasswordHash)
     if (!passwordOk) {
-        c.SetError(r, "Invalid email or password")
+        sess.SetFlash("login_error", "Invalid email or password")
         c.Redirect(w, r, "/login", http.StatusSeeOther)
         return
     }
