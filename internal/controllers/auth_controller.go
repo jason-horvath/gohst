@@ -100,7 +100,6 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
     // Find user in database
 	user, err := auth.Login(sess, email, password)
-
     if err != nil {
         sess.SetFlash("login_error", "Invalid email or password")
         c.Redirect(w, r, "/login", http.StatusSeeOther)
