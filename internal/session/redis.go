@@ -225,3 +225,31 @@ func (rsm *RedisSessionManager) Remove(sessionID string, key string) error {
 
     return nil
 }
+
+// Save saves the entire session
+func (rsm *RedisSessionManager) Save(sessionID string, session *SessionData) error {
+    ctx := context.Background()
+
+    // Encode session data using Gob
+    var buf bytes.Buffer
+    encoder := gob.NewEncoder(&buf)
+    err := encoder.Encode(session)
+    if err != nil {
+        return err
+    }
+
+    // Get current TTL if possible
+    ttl, err := rsm.redisClient.TTL(ctx, sessionID).Result()
+    if err != nil || ttl < 0 {
+        ttl = GetSessionLength() // Default if TTL can't be retrieved
+    }
+
+    // Save to Redis with the same expiration
+    return rsm.redisClient.Set(ctx, sessionID, buf.Bytes(), ttl).Err()
+}
+
+// Delete removes the entire session
+func (rsm *RedisSessionManager) Delete(sessionID string) error {
+    ctx := context.Background()
+    return rsm.redisClient.Del(ctx, sessionID).Err()
+}
