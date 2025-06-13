@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/gob"
 	"errors"
 	"time"
 
@@ -16,6 +17,11 @@ type AuthData struct {
     Name       string
     IsAdmin    bool
     LoggedInAt time.Time
+}
+
+func init() {
+    // Initialization code here
+    gob.Register(&AuthData{})
 }
 
 // Login attempts to authenticate a user with email and password
