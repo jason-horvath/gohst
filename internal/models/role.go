@@ -20,7 +20,7 @@ func NewRoleModel() *RoleModel {
 // FindByID finds a role by ID
 func (m *RoleModel) FindByID(id uint64) (*Role, error) {
 	role := &Role{}
-	query := "SELECT * FROM " + m.GetTableName() + " WHERE id = ?"
+	query := "SELECT * FROM " + m.GetTableName() + " WHERE id = $1"
 	err := m.GetDB().QueryRow(query, id).Scan(
 		&role.ID,
 		&role.Name,
@@ -37,7 +37,7 @@ func (m *RoleModel) FindByID(id uint64) (*Role, error) {
 // FindByName finds a role by name
 func (m *RoleModel) FindByName(name string) (*Role, error) {
 	role := &Role{}
-	query := "SELECT * FROM " + m.GetTableName() + " WHERE name = ?"
+	query := "SELECT * FROM " + m.GetTableName() + " WHERE name = $1"
 	err := m.GetDB().QueryRow(query, name).Scan(
 		&role.ID,
 		&role.Name,
