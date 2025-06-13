@@ -2,8 +2,12 @@ package session
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"time"
+
+	"gohst/internal/config"
+	"gohst/internal/utils"
 )
 
 type sessKey string
@@ -46,6 +50,7 @@ func (s *Session) Get(key string) (any, bool)  {
     return val, ok
 }
 
+// Get CSRF Token from the session
 func (s *Session) GetCSRF() (any, bool) {
 	if s.data == nil {
         return nil, false
@@ -54,18 +59,54 @@ func (s *Session) GetCSRF() (any, bool) {
     return val, ok
 }
 
+// Set the CSRF Token in the session
+func (s *Session) SetCSRF(csrf string) *Session {
+	if csrf == "" {
+        log.Println("CSRF token is nil, generating a new one")
+		csrf, _ = utils.GenerateCSRF() // Generate a new CSRF token
+    }
+    s.data.Values[string(CSRFKey)] = csrf
+    return s
+}
+
+// RemoveCSRF removes the CSRF token from the session
+func (s *Session) RemoveCSRF() {
+	if s.data == nil {
+		return
+	}
+	s.Remove(string(CSRFKey))
+}
+
 // Set writes a value, persists to the store, and re-sets the cookie
 func (s *Session) Set(key string, val any) {
     s.data.Values[key] = val
     s.manager.store.SetValue(s.id, key, val)
     // refresh cookie so client sees it
-    http.SetCookie(s.w, &http.Cookie{
+
+    s.setSessionCookie()
+}
+
+// setSessionCookie is a helper to standardize cookie settings
+func (s *Session) setSessionCookie() {
+    // Get environment from config
+    isProduction := config.App.IsProduction()
+
+    cookie := &http.Cookie{
         Name:     SESSION_NAME,
         Value:    s.id,
         Path:     "/",
         HttpOnly: true,
+		Secure:   isProduction,
+		SameSite: http.SameSiteLaxMode, // Set to Lax by default
         Expires:  time.Now().Add(GetSessionLength()),
-    })
+    }
+
+    // Set to strict for production
+    if isProduction {
+        cookie.SameSite = http.SameSiteStrictMode
+    }
+
+    http.SetCookie(s.w, cookie)
 }
 
 // SetFlash stores a flash message that will be displayed once
@@ -204,4 +245,37 @@ func (s *Session) Remove(key string) {
 
     // Persist the change to the storage backend
     s.manager.store.Remove(s.id, key)
+}
+
+// Regenerate creates a new session ID while preserving important data
+func (s *Session) Regenerate() {
+   // Save essential data before regeneration
+    csrfToken, hasCSRF := s.Get("csrfToken")
+
+    // Generate new session ID
+    oldID := s.id
+    s.id = GenerateSessionID() // Your existing method
+
+    // Create new session data
+    oldValues := s.data.Values
+    s.data = &SessionData{
+        Values: make(map[string]interface{}),
+    }
+
+    // Copy ALL old values to new session
+    for k, v := range oldValues {
+        s.data.Values[k] = v
+    }
+
+    // Ensure CSRF token is preserved (belt and suspenders)
+    if hasCSRF {
+        s.data.Values["csrfToken"] = csrfToken
+    }
+
+    // Save and delete
+    s.manager.Save(s.id, s.data)
+    s.manager.Delete(oldID)
+
+    // Update cookie
+    s.setSessionCookie()
 }
