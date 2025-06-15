@@ -74,4 +74,5 @@ type Fieldset map[string]Field
 type Field struct {
 	Label Label
 	Input Input
+	Error  string
 }

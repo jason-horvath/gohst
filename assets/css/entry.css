@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+@layer base {
+  /* Heading Styles */
+  h1 {
+    @apply mb-6 text-3xl font-bold text-sky-200;
+  }
+
+  h2 {
+    @apply mb-5 text-2xl font-semibold text-sky-200;
+  }
+
+  h3 {
+    @apply mb-4 text-xl font-semibold text-sky-300;
+  }
+
+  h4 {
+    @apply mb-3 text-lg font-medium text-sky-300;
+  }
+
+  h5 {
+    @apply mb-2 text-base font-medium text-sky-400;
+  }
+
+  h6 {
+    @apply mb-2 text-sm font-medium text-sky-400;
+  }
+
+  /* Paragraph Style */
+  p {
+    @apply mb-4 text-gray-200 leading-relaxed;
+  }
+}

@@ -1,17 +1,21 @@
-{{define "title"}}Login - Welcome to Gohst{{ end }}
+{{define "title"}}Register - Welcome to Gohst{{ end }}
 <div class="w-10/12 p-10 mx-auto border rounded-md border-sky-900">
-  <h2 class="text-center">Login</h2>
-  {{ template "flash/error" (index .Flash "login_error") }}
+    <h2 class="text-center">Register</h2>
+  {{ template "flash/error" (index .Flash "register_error") }}
   <!-- Form Layouts: Labels On Top -->
   <form
     class="space-y-6 dark:text-gray-100"
-    action="{{ url }}/login"
+    action="{{ url }}/register"
     method="post"
   >
     {{ .CSRF.Input }}
     {{ $fields := .Data.Form.Fieldset }}
+    {{ template "forms/field" (index $fields "first_name") }}
+    {{ template "forms/field" (index $fields "last_name") }}
     {{ template "forms/field" (index $fields "email") }}
+    {{ template "forms/field" (index $fields "email_confirm") }}
     {{ template "forms/field" (index $fields "password") }}
+    {{ template "forms/field" (index $fields "password_confirm") }}
     <div class="flex items-center justify-center">
       {{ template "forms/button" (index .Data.Form.Buttons "submit") }}
     </div>
