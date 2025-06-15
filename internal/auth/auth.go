@@ -64,6 +64,47 @@ func Login(sess *session.Session, email, password string) (*models.User, error) 
     return user, nil
 }
 
+// Register creates a new user account
+func Register(email, firstName, lastName, password string) error {
+    // Check if email already exists
+    userModel := models.NewUserModel()
+    existingUser, err := userModel.FindByEmail(email)
+    if err == nil && existingUser != nil {
+        return errors.New("email already in use")
+    }
+
+    // Hash the password
+    passwordHash, err := utils.HashPassword(password)
+    if err != nil {
+        return errors.New("error processing password")
+    }
+
+    // Get the default user role (assuming "user" role exists)
+    roleModel := models.NewRoleModel()
+    role, err := roleModel.FindByName("user")
+    if err != nil {
+        return errors.New("default role not found")
+    }
+
+    // Create the user
+    user := &models.User{
+        FirstName:    firstName,
+        LastName:     lastName,
+        Email:        email,
+        PasswordHash: passwordHash,
+        RoleID:       role.ID,
+        Active:       true,
+    }
+
+    // Save to database
+    err = userModel.Create(user)
+    if err != nil {
+        return errors.New("failed to create user: " + err.Error())
+    }
+
+    return nil
+}
+
 // GetAuthData retrieves auth data from the session
 func GetAuthData(sess *session.Session) *AuthData {
     auth, ok := sess.Get(authKey)
