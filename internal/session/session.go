@@ -13,11 +13,13 @@ import (
 type sessKey string
 type flashMessageKey string
 type oldDataKey string
+type fieldErrorsKey string
 
 const (
-    sessionKey sessKey = "gohst-session" // avoids colliding with SessionIDKey/CSRFKey
+    sessionKey sessKey = "gohst_session" // avoids colliding with SessionIDKey/CSRFKey
 	flashKey flashMessageKey = "_gohst_flash_" // for flash messages
 	oldKey oldDataKey = "_gohst_old_" // for old values in forms/data
+	fieldErrorsPrefix fieldErrorsKey = "_gohst_field_errors_" // for field-specific errors
 )
 
 // Session is what your handlers will actually use
@@ -212,6 +214,55 @@ func (s *Session) PeekAllFlash() map[string]any {
 // Similarly for old data
 func (s *Session) PeekAllOld() map[string]any {
     return s.getKeysByPrefix(string(oldKey))
+}
+
+// Add these methods to your session package
+func (s *Session) SetFieldError(field, message string) {
+    s.Set(string(fieldErrorsPrefix) + field, message)
+}
+
+func (s *Session) GetFieldError(field string) (string, bool) {
+    val, ok := s.Get(string(fieldErrorsPrefix) + field)
+    if !ok {
+        return "", false
+    }
+    // Clear after retrieving
+    s.Remove(string(fieldErrorsPrefix) + field)
+    return val.(string), true
+}
+
+func (s *Session) PeekFieldError(field string) (string, bool) {
+    val, ok := s.Get(string(fieldErrorsPrefix) + field)
+    if !ok {
+        return "", false
+    }
+    return val.(string), true
+}
+
+// GetAllFieldError retrieves all field errors and removes them from the session
+func (s *Session) GetAllFieldError() map[string]string {
+    if s.data == nil {
+        return nil
+    }
+
+    fieldErrors := make(map[string]string)
+    prefix := string(fieldErrorsPrefix)
+    prefixLen := len(prefix)
+
+    // Find all keys with the field_error prefix
+    for key, val := range s.data.Values {
+        if len(key) > prefixLen && key[:prefixLen] == prefix {
+            // Extract the actual field name without prefix
+            fieldName := key[prefixLen:]
+            if strVal, ok := val.(string); ok {
+                fieldErrors[fieldName] = strVal
+            }
+            // Remove after retrieving
+            s.Remove(key)
+        }
+    }
+
+    return fieldErrors
 }
 
 // getKeysByPrefix retrieves all values with a specific prefix without removing them
