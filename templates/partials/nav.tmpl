@@ -1,0 +1,11 @@
+{{ define "partials/nav" }}
+{{ if .Auth }}
+    {{ .Auth.Email}}
+{{ end}}
+<nav class="flex items-center space-x-4 text-sky-200">
+    <a href="{{ url }}" class="text-lg">Home</a>
+    <a href="{{ url }}/about" class="text-lg">About</a>
+    <a href="{{ url }}/login" class="text-lg">Login</a>
+    <a href="{{ url }}/register" class="text-lg">Register</a>
+</nav>
+{{ end }}
