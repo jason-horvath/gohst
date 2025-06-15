@@ -43,7 +43,7 @@ type ViewDirs struct {
 }
 
 
-const defaultLayout string = "layout/default"
+const defaultLayout string = "layouts/default"
 
 func NewView() *View {
 	templateFuncs := TemplateFuncs()
