@@ -119,7 +119,7 @@ func IsAuthenticated(sess *session.Session) bool {
     return GetAuthData(sess) != nil
 }
 
-// Logout removes auth data from the session
+// Logout completely clears the session for security
 func Logout(sess *session.Session) {
-    sess.Remove(authKey)
+    sess.RegenerateNew()
 }
