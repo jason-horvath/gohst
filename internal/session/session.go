@@ -221,6 +221,7 @@ func (s *Session) SetFieldError(field, message string) {
     s.Set(string(fieldErrorsPrefix) + field, message)
 }
 
+// GetFieldError retrieves a field-specific error and removes it from the session
 func (s *Session) GetFieldError(field string) (string, bool) {
     val, ok := s.Get(string(fieldErrorsPrefix) + field)
     if !ok {
@@ -231,12 +232,18 @@ func (s *Session) GetFieldError(field string) (string, bool) {
     return val.(string), true
 }
 
+// PeekFieldError retrieves a field-specific error without removing it from the session
 func (s *Session) PeekFieldError(field string) (string, bool) {
     val, ok := s.Get(string(fieldErrorsPrefix) + field)
     if !ok {
         return "", false
     }
     return val.(string), true
+}
+
+// PeekAllFieldError retrieves all field errors without removing them from the session
+func (s *Session) PeekAllFieldError() map[string]any {
+    return s.getKeysByPrefix(string(fieldErrorsPrefix))
 }
 
 // GetAllFieldError retrieves all field errors and removes them from the session
@@ -328,5 +335,30 @@ func (s *Session) Regenerate() {
     s.manager.Delete(oldID)
 
     // Update cookie
+    s.setSessionCookie()
+}
+
+
+// RegenerateNew creates a completely new session with no preserved values
+func (s *Session) RegenerateNew() {
+    // Generate new session ID
+    oldID := s.id
+    s.id = GenerateSessionID()
+
+    // Create completely empty session data
+    s.data = &SessionData{
+        Values: make(map[string]interface{}),
+    }
+
+    // Generate fresh CSRF token for security
+    s.SetCSRF("")
+
+    // Save the new empty session
+    s.manager.Save(s.id, s.data)
+
+    // Delete the old session completely from storage
+    s.manager.Delete(oldID)
+
+    // Update cookie with new session ID
     s.setSessionCookie()
 }
