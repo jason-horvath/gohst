@@ -1,11 +1,24 @@
 {{ define "partials/nav" }}
 {{ if .Auth }}
     {{ .Auth.Email}}
-{{ end}}
+{{ end }}
 <nav class="flex items-center space-x-4 text-sky-200">
-    <a href="{{ url }}" class="text-lg">Home</a>
-    <a href="{{ url }}/about" class="text-lg">About</a>
+  <a href="{{ url }}" class="text-lg">Home</a>
+  <a href="{{ url }}/about" class="text-lg">About</a>
+  {{ if .Auth }}
+    <!-- Logout form styled as a link -->
+    <form method="post" action="{{ url }}/logout" class="inline p-0 m-0">
+        {{ .CSRF.Input }}
+        <button
+        type="submit"
+        class="p-0 text-lg bg-transparent border-0 cursor-pointer text-sky-200 hover:text-sky-400"
+        >
+        Logout
+        </button>
+    </form>
+  {{ else }}
     <a href="{{ url }}/login" class="text-lg">Login</a>
     <a href="{{ url }}/register" class="text-lg">Register</a>
+  {{ end }}
 </nav>
 {{ end }}
