@@ -280,3 +280,17 @@ func (c *AuthController) HandleRegister(w http.ResponseWriter, r *http.Request) 
     // Redirect to login page
     c.Redirect(w, r, "/login", http.StatusSeeOther)
 }
+
+// HandleLogout processes logout requests
+func (c *AuthController) HandleLogout(w http.ResponseWriter, r *http.Request) {
+    sess := session.FromContext(r.Context())
+
+    // Use the auth package's logout function (no error to check)
+    auth.Logout(sess)
+
+    // Set a success message (after regeneration)
+    sess.SetFlash("success", "You have been logged out successfully")
+
+    // Redirect to home page
+    c.Redirect(w, r, "/", http.StatusSeeOther)
+}
