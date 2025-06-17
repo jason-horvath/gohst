@@ -23,6 +23,7 @@ func SetupRoutes() http.Handler {
 	mux.HandleFunc("GET /post/{id}", pages.Post)
 	mux.HandleFunc("GET /login", auth.Login)
 	mux.HandleFunc("POST /login", auth.HandleLogin)
+	mux.HandleFunc("POST /logout", auth.HandleLogout)
 	mux.HandleFunc("GET /register", auth.Register)
 	mux.HandleFunc("POST /register", auth.HandleRegister)
 
