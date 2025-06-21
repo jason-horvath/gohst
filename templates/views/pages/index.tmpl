@@ -1,19 +1,166 @@
-{{ define "title" }}Home - Welcome to Gohst{{ end }}
-<img
-  src="{{ url }}/static/images/logo-transparent.png"
-  alt="Gohst"
-  class="w-1/2 h-auto mx-auto my-4 md:w-1/5"
-/>
-<div class="p-10 m-10 text-center text-white rounded-md bg-sky-800">
-  <h1 class="text-4xl text-white">GO Framework</h1>
-</div>
+{{ define "title" }}Gohst - The Go Web Framework{{ end }}
 
-<div class="text-center">
-  <p>The lightwieght app starter kit.</p>
-  <div class="flex items-center justify-center p-4">
-      <a href="https://github.com/Larzilla-Labs/gohst" target="_blank">{{ icon "github" "w-15 h-15 text-sky-200 hover:text-sky-300 cursor-pointer" }}</a>
+<div class="mx-auto max-w-7xl">
+  <!-- Hero Section -->
+  <div class="relative overflow-hidden shadow-2xl rounded-xl bg-gradient-to-br from-sky-800 to-blue-900">
+    <div class="absolute inset-0 bg-[url('/static/images/grid-pattern.svg')] opacity-20"></div>
+    <div class="relative px-8 py-16 text-center">
+      <img src="{{ url }}/static/images/logo-transparent.png" alt="Gohst" class="mx-auto mb-6 w-100 h-100" />
+      <p class="max-w-2xl mx-auto text-xl text-sky-100">
+        A lightweight Go web application starter kit with modern frontend capabilities and built-in developer tools.
+      </p>
+    </div>
   </div>
 
+  <!-- Features Section -->
+  <div class="mt-16">
+    <h2 class="mb-12 text-3xl font-bold text-center">Core Features</h2>
+
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <!-- Feature 1 -->
+      <div class="p-6 transition-all border rounded-lg bg-sky-900/30 border-sky-700/50 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-900/20">
+        <div class="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-sky-800">
+          {{ icon "fire" "w-6 h-6 text-sky-200" }}
+        </div>
+        <h3 class="mb-2 text-xl font-semibold">Hot-Reloading</h3>
+        <p class="text-gray-300">Enjoy seamless development with Air providing automatic Go server restarts on code changes.</p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="p-6 transition-all border rounded-lg bg-sky-900/30 border-sky-700/50 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-900/20">
+        <div class="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-sky-800">
+          {{ icon "code-bracket-square" "w-6 h-6 text-sky-200" }}
+        </div>
+        <h3 class="mb-2 text-xl font-semibold">Modern Frontend</h3>
+        <p class="text-gray-300">Built-in Vite, Tailwind CSS, Alpine.js, and TypeScript for a responsive and interactive UI.</p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="p-6 transition-all border rounded-lg bg-sky-900/30 border-sky-700/50 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-900/20">
+        <div class="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-sky-800">
+          {{ icon "table-cells" "w-6 h-6 text-sky-200" }}
+        </div>
+        <h3 class="mb-2 text-xl font-semibold">Database Ready</h3>
+        <p class="text-gray-300">Containerized Postgres database with migrations and seeding capability for fast setup.</p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="p-6 transition-all border rounded-lg bg-sky-900/30 border-sky-700/50 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-900/20">
+        <div class="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-sky-800">
+          {{ icon "key" "w-6 h-6 text-sky-200" }}
+        </div>
+        <h3 class="mb-2 text-xl font-semibold">Session Management</h3>
+        <p class="text-gray-300">Built-in session handling with support for file-based or Redis storage systems.</p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="p-6 transition-all border rounded-lg bg-sky-900/30 border-sky-700/50 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-900/20">
+        <div class="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-sky-800">
+          {{ icon "puzzle-piece" "w-6 h-6 text-sky-200" }}
+        </div>
+        <h3 class="mb-2 text-xl font-semibold">Template System</h3>
+        <p class="text-gray-300">Flexible HTML templating with layouts, partials, and component-based architecture.</p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="p-6 transition-all border rounded-lg bg-sky-900/30 border-sky-700/50 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-900/20">
+        <div class="flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-sky-800">
+          {{ icon "computer-desktop" "w-6 h-6 text-sky-200" }}
+        </div>
+        <h3 class="mb-2 text-xl font-semibold">CLI Tools</h3>
+        <p class="text-gray-300">Integrated command-line interface for managing your development workflow with ease.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture Section -->
+  <div class="px-6 py-12 mt-20 border rounded-xl bg-gradient-to-r from-sky-800/40 to-blue-900/40 border-sky-800/50">
+    <h2 class="mb-8 text-3xl font-bold text-center">Clean Architecture</h2>
+
+    <div class="flex flex-col gap-8 md:flex-row">
+      <div class="flex-1">
+        <h3 class="pb-2 mb-4 border-b border-sky-700">Backend Structure</h3>
+        <ul class="space-y-2 text-gray-300">
+          <li class="flex items-center">
+            <span class="inline-block w-3 h-3 mr-2 rounded-full bg-sky-400"></span>
+            <span><code class="px-1 rounded bg-sky-900/50">cmd/</code> - Application entrypoints</span>
+          </li>
+          <li class="flex items-center">
+            <span class="inline-block w-3 h-3 mr-2 rounded-full bg-sky-400"></span>
+            <span><code class="px-1 rounded bg-sky-900/50">internal/</code> - Core framework logic</span>
+          </li>
+          <li class="flex items-center">
+            <span class="inline-block w-3 h-3 mr-2 rounded-full bg-sky-400"></span>
+            <span><code class="px-1 rounded bg-sky-900/50">database/</code> - Migrations and seeds</span>
+          </li>
+          <li class="flex items-center">
+            <span class="inline-block w-3 h-3 mr-2 rounded-full bg-sky-400"></span>
+            <span><code class="px-1 rounded bg-sky-900/50">routes/</code> - URL and endpoint handling</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="flex-1">
+        <h3 class="pb-2 mb-4 border-b border-sky-700">Frontend Structure</h3>
+        <ul class="space-y-2 text-gray-300">
+          <li class="flex items-center">
+            <span class="inline-block w-3 h-3 mr-2 bg-indigo-400 rounded-full"></span>
+            <span><code class="px-1 rounded bg-sky-900/50">templates/</code> - HTML templates</span>
+          </li>
+          <li class="flex items-center">
+            <span class="inline-block w-3 h-3 mr-2 bg-indigo-400 rounded-full"></span>
+            <span><code class="px-1 rounded bg-sky-900/50">assets/</code> - CSS, JS, and images</span>
+          </li>
+          <li class="flex items-center">
+            <span class="inline-block w-3 h-3 mr-2 bg-indigo-400 rounded-full"></span>
+            <span><code class="px-1 rounded bg-sky-900/50">static/</code> - Compiled assets</span>
+          </li>
+          <li class="flex items-center">
+            <span class="inline-block w-3 h-3 mr-2 bg-indigo-400 rounded-full"></span>
+            <span><code class="px-1 rounded bg-sky-900/50">vite.config.js</code> - Build configuration</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Getting Started -->
+  <div class="mt-16">
+    <h2 class="mb-8 text-3xl font-bold text-center">Get Started in Seconds</h2>
+
+    <div class="p-6 mb-8 border rounded-lg bg-sky-950/60 border-sky-900">
+      <div class="space-y-4 font-mono text-sm">
+        <div class="flex items-center">
+          <span class="mr-2 text-sky-500">$</span>
+          <code class="text-gray-300">git clone https://github.com/jason-horvath/gohst.git</code>
+        </div>
+        <div class="flex items-center">
+          <span class="mr-2 text-sky-500">$</span>
+          <code class="text-gray-300">cd gohst</code>
+        </div>
+        <div class="flex items-center">
+          <span class="mr-2 text-sky-500">$</span>
+          <code class="text-gray-300">cp .env.example .env</code>
+        </div>
+        <div class="flex items-center">
+          <span class="mr-2 text-sky-500">$</span>
+          <code class="text-gray-300">./gohst build</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <a href="https://github.com/Larzilla-Labs/gohst" class="inline-flex items-center gap-2 px-6 py-3 font-medium text-white transition-colors rounded-lg bg-sky-700 hover:bg-sky-600" target="_blank" rel="noopener noreferrer">
+        {{ icon "github" "w-8 h-8" }}
+        View on GitHub
+      </a>
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div class="pb-10 mt-20 text-center">
+    <p class="mb-1 text-sky-300">Created and maintained by</p>
+    <h3 class="mb-2 text-2xl font-bold text-white">Jason Horvath</h3>
+    <a href="mailto:jason.horvath@larzilla.com" class="text-sky-400 hover:text-sky-300">jason.horvath@larzilla.com</a>
+  </div>
 </div>
-
-
