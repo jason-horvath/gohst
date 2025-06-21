@@ -34,7 +34,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		Test: "This is a test",
 		Form: types.Form{
 			Method: "POST",
-			Action: "/login", // Adjust as needed
+			Action: "/auth/login", // Adjust as needed
 			Fieldset: types.Fieldset{
 				"email": types.Field{
 					Input: types.Text{
@@ -71,11 +71,11 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 // Handle the login info that is submitted from the form
 func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r.Context())
-
+	loginUri := "/auth/login"
 	// Parse the form data
     if err := r.ParseForm(); err != nil {
         c.SetError(r, "Failed to parse form data")
-        c.Redirect(w, r, "/login", http.StatusSeeOther)
+        c.Redirect(w, r, loginUri, http.StatusSeeOther)
         return
     }
 
@@ -87,14 +87,14 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	// Validate input
     if email == "" || password == "" {
         sess.SetFlash("login_error", "Email and password are required")
-        c.Redirect(w, r, "/login", http.StatusSeeOther)
+        c.Redirect(w, r, loginUri, http.StatusSeeOther)
         return
     }
 
 
 	if !validation.IsEmail(email) {
 		sess.SetFlash("login_error", "Invalid email format")
-		c.Redirect(w, r, "/login", http.StatusSeeOther)
+		c.Redirect(w, r, loginUri, http.StatusSeeOther)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	user, err := auth.Login(sess, email, password)
     if err != nil {
         sess.SetFlash("login_error", "Invalid email or password")
-        c.Redirect(w, r, "/login", http.StatusSeeOther)
+        c.Redirect(w, r, loginUri, http.StatusSeeOther)
         return
     }
 
@@ -110,7 +110,7 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	passwordOk, _ := utils.CheckPassword(password, user.PasswordHash)
     if (!passwordOk) {
         sess.SetFlash("login_error", "Invalid email or password")
-        c.Redirect(w, r, "/login", http.StatusSeeOther)
+        c.Redirect(w, r, loginUri, http.StatusSeeOther)
         return
     }
 
@@ -134,7 +134,7 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		Test: "This is a test",
 		Form: types.Form{
 			Method: "POST",
-			Action: "/login", // Adjust as needed
+			Action: "/auth/login", // Adjust as needed
 			Fieldset: types.Fieldset{
 				"first_name": types.Field{
                 Input: types.Text{
@@ -209,11 +209,12 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 
 func (c *AuthController) HandleRegister(w http.ResponseWriter, r *http.Request) {
     sess := session.FromContext(r.Context())
+	registerUri := "/auth/register"
 
     // Parse the form data
     if err := r.ParseForm(); err != nil {
         c.SetError(r, "Failed to parse form data")
-        c.Redirect(w, r, "/register", http.StatusSeeOther)
+        c.Redirect(w, r, registerUri, http.StatusSeeOther)
         return
     }
 
@@ -234,35 +235,35 @@ func (c *AuthController) HandleRegister(w http.ResponseWriter, r *http.Request) 
     // Validate inputs
     if email == "" || emailConfirm == "" || password == "" || passwordConfirm == "" {
         sess.SetFlash("register_error", "All fields are required")
-        c.Redirect(w, r, "/register", http.StatusSeeOther)
+        c.Redirect(w, r, registerUri, http.StatusSeeOther)
         return
     }
 
     // Check if emails match
     if email != emailConfirm {
         sess.SetFlash("register_error", "Emails do not match")
-        c.Redirect(w, r, "/register", http.StatusSeeOther)
+        c.Redirect(w, r, registerUri, http.StatusSeeOther)
         return
     }
 
     // Check if passwords match
     if password != passwordConfirm {
         sess.SetFlash("register_error", "Passwords do not match")
-        c.Redirect(w, r, "/register", http.StatusSeeOther)
+        c.Redirect(w, r, registerUri, http.StatusSeeOther)
         return
     }
 
     // Validate email format
     if !validation.IsEmail(email) {
         sess.SetFlash("register_error", "Invalid email format")
-        c.Redirect(w, r, "/register", http.StatusSeeOther)
+        c.Redirect(w, r, registerUri, http.StatusSeeOther)
         return
     }
 
     // Validate password strength
     if len(password) < 8 {
         sess.SetFlash("register_error", "Password must be at least 8 characters")
-        c.Redirect(w, r, "/register", http.StatusSeeOther)
+        c.Redirect(w, r, registerUri, http.StatusSeeOther)
         return
     }
 
@@ -270,7 +271,7 @@ func (c *AuthController) HandleRegister(w http.ResponseWriter, r *http.Request) 
     err := auth.Register(email, firstName, lastName, password)
     if err != nil {
         sess.SetFlash("register_error", err.Error())
-        c.Redirect(w, r, "/register", http.StatusSeeOther)
+        c.Redirect(w, r, registerUri, http.StatusSeeOther)
         return
     }
 
@@ -278,7 +279,7 @@ func (c *AuthController) HandleRegister(w http.ResponseWriter, r *http.Request) 
     sess.SetFlash("login_success", "Registration successful! You can now log in.")
 
     // Redirect to login page
-    c.Redirect(w, r, "/login", http.StatusSeeOther)
+    c.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }
 
 // HandleLogout processes logout requests
@@ -292,5 +293,5 @@ func (c *AuthController) HandleLogout(w http.ResponseWriter, r *http.Request) {
     sess.SetFlash("success", "You have been logged out successfully")
 
     // Redirect to home page
-    c.Redirect(w, r, "/", http.StatusSeeOther)
+    c.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }
