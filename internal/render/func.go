@@ -12,5 +12,6 @@ func TemplateFuncs() template.FuncMap {
 		"isDevelopment": func() bool { return config.App.IsDevelopment() },
 		"isProduction":	 func() bool { return config.App.IsProduction() },
 		"url":		 	 func() string { return config.App.URL },
+		"icon":		 	 Icon,
 	}
 }
