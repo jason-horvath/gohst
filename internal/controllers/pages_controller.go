@@ -42,10 +42,6 @@ func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
 	c.Render(w, r, "pages/index", data)
 }
 
-func (c *PagesController) About(w http.ResponseWriter, r *http.Request) {
-	c.Render(w, r, "pages/about")
-}
-
 func (c *PagesController) Post(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
