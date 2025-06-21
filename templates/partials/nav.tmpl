@@ -3,8 +3,6 @@
     {{ .Auth.Email}}
 {{ end }}
 <nav class="flex items-center space-x-4 text-sky-200">
-  <a href="{{ url }}" class="text-lg">Home</a>
-  <a href="{{ url }}/about" class="text-lg">About</a>
   {{ if .Auth }}
     <!-- Logout form styled as a link -->
     <form method="post" action="{{ url }}/logout" class="inline p-0 m-0">
