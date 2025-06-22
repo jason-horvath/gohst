@@ -5,7 +5,7 @@
 <nav class="flex items-center space-x-4 text-sky-200">
   {{ if .Auth }}
     <!-- Logout form styled as a link -->
-    <form method="post" action="{{ url }}/logout" class="inline p-0 m-0">
+    <form method="post" action="{{ url }}/auth/logout" class="inline p-0 m-0">
         {{ .CSRF.Input }}
         <button
         type="submit"
