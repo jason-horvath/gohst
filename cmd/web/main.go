@@ -22,10 +22,11 @@ func main() {
 	db.InitDB()
 	defer db.CloseDB()
 
-	log.Println("From Config APP_ENV_KEY:", config.App.EnvKey)
-	log.Println("config.App:", config.App)
-	log.Println("config.Vite:", config.Vite)
-	log.Println("config.DB:", config.DB)
+	if config.App.IsDevelopment() {
+		log.Println("config.App:", config.App)
+		log.Println("config.Vite:", config.Vite)
+		log.Println("config.DB:", config.DB)
+	}
 
 	mux := routes.SetupRoutes()
 	port := config.App.PortStr()
