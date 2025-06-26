@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"gohst/internal/config"
 )
 
 
@@ -32,7 +34,10 @@ func NewFileSessionManager(storageDir string) (*FileSessionManager, string) {
         cwd, err := os.Getwd()
         if err == nil {
             storageDir = filepath.Join(cwd, storageDir)
-            log.Println("Using absolute session path:", storageDir)
+
+			if config.App.IsDevelopment() {
+				log.Println("Using absolute session path:", storageDir)
+			}
         }
     }
 
@@ -201,7 +206,6 @@ func (fsm *FileSessionManager) saveSession(sessionID string, session *SessionDat
 // Load session from file
 func (fsm *FileSessionManager) loadSession(sessionID string) *SessionData {
     filePath := filepath.Join(fsm.dir, sessionID+SESSION_FILE_EXT)
-    log.Printf("Attempting to load session from: %s", filePath)
 
     file, err := os.Open(filePath)
     if err != nil {
@@ -217,7 +221,10 @@ func (fsm *FileSessionManager) loadSession(sessionID string) *SessionData {
         return nil
     }
 
-    log.Printf("Successfully loaded session: %s", sessionID)
+	if config.App.IsDevelopment() {
+		log.Printf("Successfully loaded session: %s", sessionID)
+	}
+
     return &session
 }
 
