@@ -2,12 +2,9 @@ package controllers
 
 import (
 	"gohst/internal/render"
-	"log"
 	"net/http"
 
-	"gohst/internal/models"
 	"gohst/internal/session"
-	"gohst/internal/utils"
 )
 
 type PagesController struct {
@@ -24,19 +21,11 @@ func NewPagesController() *PagesController {
 
 func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r.Context())
-	username, _ := sess.Get("Username") // Example of getting a user from the session
-	hashed, _ := utils.HashPassword("Test1234!") // Example of hashing a password
-	userModel := models.NewUserModel()
-	user, err := userModel.FirstOf("SELECT * FROM users WHERE email = $1", "admin@example.com")
+	username, _ := sess.Get("Username")
 
-	if err != nil {
-		log.Println("Error fetching user:", err)
-	}
-	log.Println("User:", user)
 	data := map[string]interface{}{
 		"SessionID": sess.ID(),
 		"Username":  username,
-		"Hashed":  "This is a password: " + hashed,
 	}
 
 	c.Render(w, r, "pages/index", data)

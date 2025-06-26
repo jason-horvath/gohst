@@ -115,8 +115,6 @@ func (v *View) loadAll() {
 	if err != nil {
 		log.Fatalf("Error loading tempaltes: %v", err)
 	}
-
-	log.Println("Loaded Dir:", dirPath, v.Template.DefinedTemplates())
 }
 
 // Render renders a view with the given name and data. Render the content then the whole view with the layout.
@@ -149,7 +147,6 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, viewName string, d
         Content: template.HTML(viewContent.String()),
     }
 
-	log.Println("DEFINED TEMPLATES:", v.Template.DefinedTemplates())
 	return v.Template.ExecuteTemplate(w, v.Layout, td)
 }
 

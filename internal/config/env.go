@@ -25,7 +25,6 @@ func initEnv(envName ...string) {
 	}
 
 	LoadEnv(cwd + "/" + env)
-	log.Println("EEEEEE", os.Getenv("APP_ENV"))
 }
 
 // LoadEnv loads environment variables from a .env file.
