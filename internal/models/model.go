@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -143,7 +142,6 @@ func (m *Model[T]) First(dest interface{}, query string, args ...interface{}) er
 // FirstOf returns a single record of type T
 func (m *Model[T]) FirstOf(query string, args ...interface{}) (*T, error) {
     dest := new(T)
-	log.Println("Destination type:", dest)
     err := m.First(dest, query, args...)
     if err != nil {
         return nil, err
