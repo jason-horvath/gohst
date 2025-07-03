@@ -1,6 +1,7 @@
 services:
-  gohst-postgres:
+  postgres:
     image: postgres:16
+    container_name: ${APP_NAME:-gohst}-postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -13,8 +14,9 @@ services:
     networks:
       - gohst-network
 
-  gohst-pgadmin:
+  pgadmin:
     image: dpage/pgadmin4:latest
+    container_name: ${APP_NAME:-gohst}-pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}

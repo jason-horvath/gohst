@@ -26,11 +26,27 @@ wait_for_postgres() {
     spinner="/|\\-"
     i=0
     echo "🐘 :: PostgreSQL startup ::"
-    until docker exec gohst-gohst-postgres-1 psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1" > /dev/null 2>&1; do
+    until docker exec "${APP_NAME:-gohst}-postgres" psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1" > /dev/null 2>&1; do
+        # Check if container is running
+        if ! docker ps --format "table {{.Names}}" | grep -q "${APP_NAME:-gohst}-postgres"; then
+            echo ""
+            echo "❌ PostgreSQL container is not running!"
+            echo "🔍 Try running: docker compose up -d"
+            return 1
+        fi
+
+        # Check timeout
+        if [ $elapsed -ge $timeout ]; then
+            echo ""
+            echo "❌ Timeout waiting for PostgreSQL to be ready"
+            echo "🔍 Check container logs: docker logs ${APP_NAME:-gohst}-postgres"
+            return 1
+        fi
+
         i=$(( (i+1) %4 ))
-        printf "\r⏳ Waiting for PostgreSQL %s%s" "${spinner:$i:1}" "$(printf '.' %.0s {1..$i})"
-        echo -n "."
+        printf "\r⏳ Waiting for PostgreSQL %s (${elapsed}s)" "${spinner:$i:1}"
         sleep 1
+        elapsed=$((elapsed + 1))
     done
 
     echo ""
