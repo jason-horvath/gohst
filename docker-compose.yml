@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - gohst-postgres-data:/var/lib/postgresql/data
       - ./docker/postgres/data:/docker-entrypoint-initdb.d
@@ -27,7 +27,7 @@ services:
     networks:
       - gohst-network
     depends_on:
-      - gohst-postgres
+      - postgres
     volumes:
       - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
 networks:
