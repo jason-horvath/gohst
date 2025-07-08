@@ -188,6 +188,56 @@ case "$1" in
     storage:link)
         "$STORAGE_MGR" "link"
         ;;
+    migrate:run)
+        echo "🔄 Running database migrations..."
+        go run cmd/migrate/main.go run
+        ;;
+    migrate:status)
+        echo "📊 Checking migration status..."
+        go run cmd/migrate/main.go status
+        ;;
+    migrate:rollback)
+        echo "⏪ Rolling back last migration batch..."
+        go run cmd/migrate/main.go rollback
+        ;;
+    migrate:create)
+        if [ -z "$2" ]; then
+            echo "❌ Migration name is required"
+            echo "Usage: ./gohst migrate:create <migration_name>"
+            exit 1
+        fi
+        echo "📝 Creating new migration: $2"
+        go run cmd/migrate/main.go create "$2"
+        ;;
+    migrate:seed)
+        echo "🌱 Running database seeds..."
+        go run cmd/migrate/main.go seed
+        ;;
+    migrate:seed:status)
+        echo "📊 Checking seed status..."
+        go run cmd/migrate/main.go seed:status
+        ;;
+    migrate:seed:refresh)
+        echo "🔄 Refreshing seeds..."
+        go run cmd/migrate/main.go seed:refresh
+        ;;
+    migrate:seed:rollback)
+        echo "⏪ Rolling back last seed batch..."
+        go run cmd/migrate/main.go seed:rollback
+        ;;
+    migrate:full)
+        echo "🚀 Running full database setup (migrations + seeds)..."
+        go run cmd/migrate/main.go full
+        ;;
+    migrate:seed:create)
+        if [ -z "$2" ]; then
+            echo "❌ Seed name is required"
+            echo "Usage: ./gohst migrate:seed:create <seed_name>"
+            exit 1
+        fi
+        echo "📝 Creating new seed: $2"
+        go run cmd/migrate/main.go seed:create "$2"
+        ;;
     *)
         echo ""
         echo -e "====++++====++++====++++====++++====++++====++++====++++====\n"
@@ -195,16 +245,26 @@ case "$1" in
         echo -e "====++++====++++====++++====++++====++++====++++====++++====\n"
         echo "Available commands:"
         echo ""
-        echo "  build               - Build the development environment with dockersql files: npm, docker, vite, gohst"
-        echo "  destroy             - Destroy the development environment including docker, sql files: npm, docker, vite, gohst"
-        echo "  dev                 - Bring up the development environment: npm, docker, vite, gohst"
-        echo "  dev:down            - Bring down the development environment: npm, docker, vite, gohst"
-        echo "  server:start        - Start the air application server"
-        echo "  server:stop         - Stop the ghost server"
-        echo "  docker:sql:build    - Set up database migrations & seeds for docker"
-        echo "  docker:sql:clear    - Delete migrations & seeds for docker"
-        echo "  docker:rebuild      - Rebuild docker"
-        echo "  stroge:link         - Link assets to the static directory"
+        echo "  destroy               - Destroy the development environment including docker, sql files: npm, docker, vite, gohst"
+        echo "  build                 - Build the development environment with dockersql files: npm, docker, vite, gohst"
+        echo "  dev                   - Bring up the development environment: npm, docker, vite, gohst"
+        echo "  dev:down              - Bring down the development environment: npm, docker, vite, gohst"
+        echo "  server:start          - Start the air application server"
+        echo "  server:stop           - Stop the ghost server"
+        echo "  docker:sql:build      - Set up database migrations & seeds for docker"
+        echo "  docker:sql:clear      - Delete migrations & seeds for docker"
+        echo "  docker:rebuild        - Rebuild docker"
+        echo "  migrate:run           - Run all pending migrations"
+        echo "  migrate:status        - Show migration status"
+        echo "  migrate:rollback      - Rollback the last batch of migrations"
+        echo "  migrate:create        - Create a new migration file"
+        echo "  migrate:seed          - Run all pending seeds"
+        echo "  migrate:seed:status   - Show seed status"
+        echo "  migrate:seed:refresh  - Clear all seed records and re-run all seeds"
+        echo "  migrate:seed:rollback - Rollback the last batch of seeds"
+        echo "  migrate:seed:create   - Create a new seed file"
+        echo "  migrate:full          - Run migrations and seeds together"
+        echo "  storage:link          - Link assets to the static directory"
         echo ""
         exit 1
         ;;
