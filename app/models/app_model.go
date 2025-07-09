@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	"gohst/internal/models"
 )
@@ -10,6 +11,12 @@ import (
 // AppModel provides basic app-specific functionality that all app models can inherit
 type AppModel[T any] struct {
 	*models.Model[T]
+}
+
+// Timestamps provides common timestamp fields for database models
+type Timestamps struct {
+    CreatedAt time.Time `db:"created_at"`
+    UpdatedAt time.Time `db:"updated_at"`
 }
 
 // NewAppModel creates a new app model with shared app-level functionality
