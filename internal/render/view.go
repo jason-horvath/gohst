@@ -15,7 +15,7 @@ import (
 
 type TemplateData struct {
     CSRF    		*CSRF      			// CSRF token for form protection
-    Auth	  		*auth.AuthData      // Pointer to the authenticated user (if any)
+    Auth	  		any      // Pointer to the authenticated user (if any)
     Flash 	        map[string]any 		// Slice for any flash messages (success/error)
 	OldData    	    map[string]any 			// Map for old input values (for form repopulation)
     Data         	any  				// Additional dynamic data specific to each page
@@ -23,7 +23,7 @@ type TemplateData struct {
 
 type ViewData struct {
 	CSRF	 *CSRF
-	Auth	 *auth.AuthData      // Pointer to the authenticated user (if any)
+	Auth	 any      // Pointer to the authenticated user (if any)
     Props    any
     Content  template.HTML
 }
