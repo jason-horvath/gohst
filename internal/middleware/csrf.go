@@ -34,7 +34,7 @@ func CSRF(next http.Handler) http.Handler {
         // Validate the CSRF token on POST requests
         if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
             // Get the CSRF token from the request
-            requestToken := r.FormValue(config.App.CSRFName)
+            requestToken := r.FormValue(config.APP_CSRF_KEY)
             if requestToken == "" {
                 http.Error(w, "CSRF token missing", http.StatusBadRequest)
                 return
