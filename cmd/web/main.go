@@ -4,9 +4,12 @@ import (
 	"log"
 	"net/http"
 
+	appConfig "gohst/app/config"
+	appRoutes "gohst/app/routes"
+	"gohst/internal/routes"
+
 	"gohst/internal/config"
 	"gohst/internal/db"
-	"gohst/internal/routes"
 	"gohst/internal/session"
 )
 
@@ -18,17 +21,20 @@ func main() {
     }()
 
 	config.InitConfig()
+	appConfig.Initialize()  // Initialize app-specific config
 	session.Init()
 	db.InitDB()
 	defer db.CloseDB()
 
 	if config.App.IsDevelopment() {
 		log.Println("config.App:", config.App)
+		log.Println("appConfig.App:", appConfig.App)
 		log.Println("config.Vite:", config.Vite)
 		log.Println("config.DB:", config.DB)
 	}
 
-	mux := routes.SetupRoutes()
+	appRouter := appRoutes.NewAppRouter()
+	mux := routes.RegisterRouter(appRouter)
 	port := config.App.PortStr()
 	server := http.Server{
 		Addr: ":" + port,
