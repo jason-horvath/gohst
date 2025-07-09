@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	appConfig "gohst/app/config"
+	appHelpers "gohst/app/helpers"
 	appRoutes "gohst/app/routes"
+	"gohst/internal/render"
 	"gohst/internal/routes"
 
 	"gohst/internal/config"
@@ -25,6 +27,9 @@ func main() {
 	session.Init()
 	db.InitDB()
 	defer db.CloseDB()
+
+	// App-specific setup
+    render.RegisterTemplateFuncs(appHelpers.AppTemplateFuncs())
 
 	if config.App.IsDevelopment() {
 		log.Println("config.App:", config.App)
