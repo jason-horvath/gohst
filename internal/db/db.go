@@ -17,11 +17,13 @@ type DBManager struct {
 }
 
 var (
-	Database *DBManager // Global database manager
-	once     sync.Once  // Ensure InitDB runs only once
+	Database  *DBManager                 // Global database manager
+	Databases map[string]*DBManager      // Multiple database connections
+	once      sync.Once                  // Ensure InitDB runs only once
+	multiOnce sync.Once                  // Ensure InitMultiDB runs only once
 )
 
-// InitDB initializes the database connection
+// InitDB initializes the database connection using framework config
 func InitDB() {
 	once.Do(func() {
 		dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -85,6 +87,51 @@ func InitDBForMigrations() error {
 	})
 
 	return initErr
+}
+
+// InitMultiDB initializes multiple database connections from app configs
+func InitMultiDB(configs map[string]*config.DatabaseConfig) {
+	multiOnce.Do(func() {
+		Databases = make(map[string]*DBManager)
+
+		for name, dbConfig := range configs {
+			dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+				dbConfig.Host,
+				dbConfig.Port,
+				dbConfig.User,
+				dbConfig.Password,
+				dbConfig.DBName,
+			)
+
+			db, err := sql.Open("postgres", dsn)
+			if err != nil {
+				log.Fatalf("Error connecting to database %s: %v", name, err)
+			}
+
+			if err = db.Ping(); err != nil {
+				log.Fatalf("Database %s ping failed: %v", name, err)
+			}
+
+			log.Printf("Connected to database: %s", name)
+			Databases[name] = &DBManager{DB: db}
+		}
+	})
+}
+
+// GetDB returns a specific database connection by name
+func GetDB(name string) *DBManager {
+	if db, exists := Databases[name]; exists {
+		return db
+	}
+	return Database // Fallback to primary
+}
+
+// GetPrimaryDB returns the primary database connection
+func GetPrimaryDB() *DBManager {
+	if primary := GetDB("primary"); primary != nil {
+		return primary
+	}
+	return Database // Fallback to legacy Database
 }
 
 // CloseDB closes the database connection
