@@ -12,6 +12,8 @@ import (
 )
 
 // DBManager manages the database connection
+
+const PRIMARY_DB_NAME = "primary"
 type DBManager struct {
 	DB *sql.DB
 }
@@ -89,12 +91,12 @@ func InitDBForMigrations() error {
 	return initErr
 }
 
-// InitMultiDB initializes multiple database connections from app configs
-func InitMultiDB(configs map[string]*config.DatabaseConfig) {
+// InitDBPool initializes multiple database connections from app configs
+func InitDBPool(pool *config.DatabaseConfigPool) {
 	multiOnce.Do(func() {
 		Databases = make(map[string]*DBManager)
 
-		for name, dbConfig := range configs {
+		for name, dbConfig := range pool.GetConfigs() {
 			dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 				dbConfig.Host,
 				dbConfig.Port,
@@ -123,7 +125,8 @@ func GetDB(name string) *DBManager {
 	if db, exists := Databases[name]; exists {
 		return db
 	}
-	return Database // Fallback to primary
+
+	return nil
 }
 
 // GetPrimaryDB returns the primary database connection
@@ -134,10 +137,32 @@ func GetPrimaryDB() *DBManager {
 	return Database // Fallback to legacy Database
 }
 
-// CloseDB closes the database connection
+// CloseDB closes all database connections
 func CloseDB() {
+	// Close primary database connection
 	if Database != nil && Database.DB != nil {
 		Database.DB.Close()
-		log.Println("Database connection closed.")
+		log.Println("Primary database connection closed.")
 	}
+
+	// Close all multi-database connections
+	for name, dbManager := range Databases {
+		if dbManager != nil && dbManager.DB != nil {
+			dbManager.DB.Close()
+			log.Printf("Database connection '%s' closed.", name)
+		}
+	}
+}
+
+// CloseDBPool closes all database connections and clears the Databases map
+func CloseDBPool() {
+	// Close all multi-database connections
+	for name, dbManager := range Databases {
+		if dbManager != nil && dbManager.DB != nil {
+			dbManager.DB.Close()
+			log.Printf("Database connection '%s' closed.", name)
+		}
+	}
+
+	Databases = make(map[string]*DBManager) // Clear the map after closing
 }
