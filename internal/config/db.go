@@ -27,6 +27,10 @@ func (p *DatabaseConfigPool) Get(name string) (*DatabaseConfig, bool) {
 	return config, exists
 }
 
+func (p *DatabaseConfigPool) GetConfigs() map[string]*DatabaseConfig {
+	return p.configs
+}
+
 func (p *DatabaseConfigPool) GetOrDefault(name string, defaultConfig *DatabaseConfig) *DatabaseConfig {
 	if config, exists := p.configs[name]; exists {
 		return config
