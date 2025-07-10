@@ -23,7 +23,8 @@ func main() {
     }()
 
 	config.InitConfig()
-	appConfig.Initialize()  // Initialize app-specific config
+	appConfig.Initialize()      // Initialize app-specific config
+	appConfig.InitDBConfigs()   // Initialize database configurations
 	session.Init()
 	db.InitDB()
 	defer db.CloseDB()
