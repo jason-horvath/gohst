@@ -24,10 +24,12 @@ func main() {
 
 	config.InitConfig()
 	appConfig.Initialize()      // Initialize app-specific config
-	appConfig.InitDBConfigs()   // Initialize database configurations
+	dbConfigs := appConfig.CreateDBConfigs()   // Initialize database configurations
 	session.Init()
+	db.InitDBPool(dbConfigs) // Initialize database connections
 	db.InitDB()
 	defer db.CloseDB()
+	defer db.CloseDBPool()
 
 	// App-specific setup
     render.RegisterTemplateFuncs(appHelpers.AppTemplateFuncs())
