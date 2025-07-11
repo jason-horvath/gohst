@@ -11,7 +11,6 @@ func InitConfig(envName ...string) {
 
 	initEnv(env)
 	initSession()
-	initDB()
 	initVite()
 
 }
