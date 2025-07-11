@@ -12,7 +12,6 @@ import (
 )
 
 // DBManager manages the database connection
-
 const PRIMARY_DB_NAME = "primary"
 type DBManager struct {
 	DB *sql.DB
@@ -24,37 +23,6 @@ var (
 	once      sync.Once                  // Ensure InitDB runs only once
 	multiOnce sync.Once                  // Ensure InitMultiDB runs only once
 )
-
-// InitDBForMigrations initializes the database connection with better error messages for migrations
-func InitDBForMigrations() error {
-	var initErr error
-	once.Do(func() {
-		dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-			config.DB.Host,
-			config.DB.Port,
-			config.DB.User,
-			config.DB.Password,
-			config.DB.DBName,
-		)
-
-		db, err := sql.Open("postgres", dsn)
-		if err != nil {
-			initErr = fmt.Errorf("❌ Failed to connect to PostgreSQL: %v\n� Check your database configuration and ensure PostgreSQL is running\n� For development: docker compose up -d", err)
-			return
-		}
-
-		// Ping to verify the connection is working
-		if err = db.Ping(); err != nil {
-			initErr = fmt.Errorf("❌ Cannot reach PostgreSQL database: %v\n� Verify database server is running and connection settings are correct\n🐳 For development: check 'docker ps' and 'docker compose up -d'", err)
-			return
-		}
-
-		log.Println("✅ Connected to PostgreSQL")
-		Database = &DBManager{DB: db}
-	})
-
-	return initErr
-}
 
 // InitDBPool initializes multiple database connections from app configs
 func InitDBPool(pool *config.DatabaseConfigPool) {
