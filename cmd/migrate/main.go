@@ -18,10 +18,7 @@ func main() {
 	config.InitConfig()
 	dbConfigs := appConfig.CreateDBConfigs()   // Initialize database configurations
 	db.InitDBPool(dbConfigs) // Initialize database connections
-	// Initialize database with better error messages for migrations
-	if err := db.InitDBForMigrations(); err != nil {
-		log.Fatal(err)
-	}
+
 	defer db.CloseDBPool()
 
 	if len(os.Args) < 2 {
