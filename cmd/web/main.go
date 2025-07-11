@@ -38,7 +38,6 @@ func main() {
 
 		log.Println("appConfig.App:", config.App)
 		log.Println("config.Vite:", coreConfig.Vite)
-		log.Println("config.DB:", coreConfig.DB)
 	}
 
 	appRouter := appRoutes.NewAppRouter()
