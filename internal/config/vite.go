@@ -71,13 +71,14 @@ func LoadManifest(path string) (Manifest, error) {
 }
 
 func initVite() {
+	app := GetAppConfig()
 	vitePort := GetEnv("VITE_PORT", DEFAULT_VITE_PORT).(int)
 
 	manifestPath := GetEnv("VITE_MANIFEST_PATH").(string)
 	var err error
 	var manifest Manifest
 
-    if App.IsProduction() {
+    if app.IsProduction() {
         // Load manifest only if not in development mode
         manifest, err = LoadManifest(manifestPath)
 
