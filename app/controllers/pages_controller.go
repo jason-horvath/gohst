@@ -29,7 +29,7 @@ func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
 		"Username":     username,
 		"AppName":      appConfig.App.Name,
 		"AppVersion":   appConfig.App.Version,
-		"IsProduction": appConfig.IsProduction(),
+		"IsProduction": appConfig.App.IsProduction(),
 		"Features":     appConfig.App.Features,
 	}
 
