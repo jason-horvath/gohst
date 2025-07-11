@@ -14,8 +14,8 @@ import (
 
 func main() {
 	// Initialize configuration
+	config.RegisterAppConfig(appConfig.InitAppConfig())
 	config.InitConfig()
-	config.RegisterAppConfig(appConfig.InitAppConfig())      // Initialize app-specific config
 	dbConfigs := appConfig.CreateDBConfigs()   // Initialize database configurations
 	db.InitDBPool(dbConfigs) // Initialize database connections
 	// Initialize database with better error messages for migrations
