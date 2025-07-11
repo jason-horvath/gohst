@@ -1,6 +1,5 @@
 package config
 
-
 const DB_DEFAULT_PORT = 5432
 type DatabaseConfig struct {
 	Host	 	string
@@ -59,5 +58,3 @@ func (p *DatabaseConfigPool) Names() []string {
 	}
 	return names
 }
-
-
