@@ -6,11 +6,14 @@ import (
 
 // AppConfig holds application-specific configuration
 type AppConfig struct {
+    EnvKey       string // The application environment (e.g., "development", "production").
+    URL          string // The application URL.
+	DistPath	 string // The path to the distribution directory.
+    Port         int    // The port on which the application listens.
 	Name        string
 	Version     string
 	Environment string
 	Debug       bool
-	URL         string
 
 	// Feature flags
 	Features FeatureFlags
@@ -45,13 +48,15 @@ type UploadConfig struct {
 var App *AppConfig
 
 // Initialize sets up the application configuration
-func Initialize() {
+func InitAppConfig() *AppConfig {
 	App = &AppConfig{
 		Name:        config.GetEnv("APP_NAME", "Gohst Application").(string),
 		Version:     config.GetEnv("APP_VERSION", "1.0.0").(string),
-		Environment: config.GetEnv("APP_ENV", "development").(string),
+		EnvKey: 	 config.GetEnv("APP_ENV_KEY", "development").(string),
 		Debug:       config.GetEnv("APP_DEBUG", false).(bool),
-		URL:         config.GetEnv("APP_URL", "http://localhost:8080").(string),
+		URL:         config.GetEnv("APP_URL", "http://localhost:3030").(string),
+		Port:        config.GetEnv("APP_PORT", config.APP_DEFAULT_PORT).(int),
+		DistPath:    config.GetEnv("APP_DIST_PATH", "static/dist").(string),
 
 		Features: FeatureFlags{
 			EnableRegistration:  config.GetEnv("FEATURE_REGISTRATION", true).(bool),
@@ -66,24 +71,36 @@ func Initialize() {
 		},
 
 		Upload: UploadConfig{
-			MaxFileSize:  config.GetEnv("UPLOAD_MAX_FILE_SIZE", int64(10<<20)).(int64), // 10MB
+			MaxFileSize:  int64(config.GetEnv("UPLOAD_MAX_FILE_SIZE", 10485760).(int)), // 10MB as int, then convert to int64
 			AllowedTypes: []string{"image/jpeg", "image/png", "image/gif", "application/pdf"},
 			UploadPath:   config.GetEnv("UPLOAD_PATH", "static/uploads").(string),
 		},
 	}
+
+	return App
+}
+
+// GetAppConfig returns the global application configuration
+func (ac *AppConfig) GetURL() string {
+	return ac.URL
+}
+
+// DistPath returns the port on which the application listens
+func (ac *AppConfig) GetDistPath() string {
+	return ac.DistPath
 }
 
 // IsProduction returns true if the app is running in production
-func IsProduction() bool {
-	return App.Environment == "production"
+func (ac *AppConfig) IsProduction() bool {
+	return ac.EnvKey == "production"
 }
 
 // IsDevelopment returns true if the app is running in development
-func IsDevelopment() bool {
-	return App.Environment == "development"
+func (ac *AppConfig) IsDevelopment() bool {
+	return ac.EnvKey == "development"
 }
 
 // IsMaintenanceMode returns true if maintenance mode is enabled
-func IsMaintenanceMode() bool {
-	return App.Features.MaintenanceMode
+func (ac *AppConfig) IsMaintenanceMode() bool {
+	return ac.Features.MaintenanceMode
 }
