@@ -91,7 +91,8 @@ func (s *Session) Set(key string, val any) {
 // setSessionCookie is a helper to standardize cookie settings
 func (s *Session) setSessionCookie() {
     // Get environment from config
-    isProduction := config.App.IsProduction()
+	app := config.GetAppConfig()
+    isProduction := app.IsProduction()
 
     cookie := &http.Cookie{
         Name:     SESSION_NAME,
