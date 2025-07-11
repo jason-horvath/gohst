@@ -11,7 +11,7 @@ func CreateDBConfigs() *config.DatabaseConfigPool {
 	// Add primary database
 	primaryDB := &config.DatabaseConfig{
 		Host:     config.GetEnv("DB_HOST", "localhost").(string),
-		Port:     config.GetEnv("DB_PORT", 5432).(int),
+		Port:     config.GetEnv("DB_PORT", config.DB_DEFAULT_PORT).(int),
 		User:     config.GetEnv("DB_USER", "gohst").(string),
 		Password: config.GetEnv("DB_PASSWORD", "password").(string),
 		DBName:   config.GetEnv("DB_NAME", "gohst").(string),
