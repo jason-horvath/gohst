@@ -3,21 +3,22 @@ package controllers
 import (
 	"net/http"
 
+	"gohst/app/services"
 	"gohst/internal/auth"
+	"gohst/internal/forms"
 	"gohst/internal/session"
-	"gohst/internal/types"
 	"gohst/internal/utils"
 	"gohst/internal/validation"
 )
 type AuthController struct {
-	*BaseController
+	*AppController
 }
 
 func NewAuthController() *AuthController {
     auth := &AuthController{
-        BaseController: NewBaseController(),
+        AppController: NewAppController(),
     }
-	auth.view.SetLayout("layouts/auth")
+	auth.View.SetLayout("layouts/auth")
     return auth
 }
 
@@ -25,38 +26,38 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r.Context())
 	type LoginPageData struct {
 		Test string
-		Form types.Form
+		Form forms.Form
 	}
 
 	emailValue, _ := sess.PeekOld("email")
 
 	data := LoginPageData{
 		Test: "This is a test",
-		Form: types.Form{
+		Form: forms.Form{
 			Method: "POST",
 			Action: "/auth/login", // Adjust as needed
-			Fieldset: types.Fieldset{
-				"email": types.Field{
-					Input: types.Text{
+			Fieldset: forms.Fieldset{
+				"email": forms.Field{
+					Input: forms.Text{
 						Name: "email",
 						Type: "email",
 						ID: "email",
 						Placeholder: "Enter your email.",
 						Value: utils.StringOr(emailValue, ""),
 					},
-					Label: types.Label{For: "email", Text: "Email"},
+					Label: forms.Label{For: "email", Text: "Email"},
 				},
-				"password": types.Field{
-					Input: types.Text{
+				"password": forms.Field{
+					Input: forms.Text{
 						Name: "password",
 						Type: "password",
 						ID: "password",
 						Placeholder: "Enter your password.",
 					},
-					Label: types.Label{For: "password", Text: "Password"},
+					Label: forms.Label{For: "password", Text: "Password"},
 				},
 			},
-			Buttons: map[string]types.Button{
+			Buttons: map[string]forms.Button{
 				"submit": {
 					Type: "submit",
 					Text: "Login",
@@ -99,7 +100,7 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
     // Find user in database
-	user, err := auth.Login(sess, email, password)
+	user, err := services.Login(sess, email, password)
     if err != nil {
         sess.SetFlash("login_error", "Invalid email or password")
         c.Redirect(w, r, loginUri, http.StatusSeeOther)
@@ -122,7 +123,7 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r.Context())
 	type LoginPageData struct {
 		Test string
-		Form types.Form
+		Form forms.Form
 	}
 
 	firstName, _ := sess.PeekOld("first_name")
@@ -132,70 +133,70 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 
 	data := LoginPageData{
 		Test: "This is a test",
-		Form: types.Form{
+		Form: forms.Form{
 			Method: "POST",
 			Action: "/auth/login", // Adjust as needed
-			Fieldset: types.Fieldset{
-				"first_name": types.Field{
-                Input: types.Text{
+			Fieldset: forms.Fieldset{
+				"first_name": forms.Field{
+                Input: forms.Text{
                     Name:        "first_name",
                     Type:        "text",
                     ID:          "first_name",
                     Placeholder: "Your first name",
                     Value:       utils.StringOr(firstName, ""),
                 },
-                Label: types.Label{For: "first_name", Text: "First Name"},
+                Label: forms.Label{For: "first_name", Text: "First Name"},
 				},
-				"last_name": types.Field{
-					Input: types.Text{
+				"last_name": forms.Field{
+					Input: forms.Text{
 						Name:        "last_name",
 						Type:        "text",
 						ID:          "last_name",
 						Placeholder: "Your last name",
 						Value:       utils.StringOr(lastName, ""),
 					},
-					Label: types.Label{For: "last_name", Text: "Last Name"},
+					Label: forms.Label{For: "last_name", Text: "Last Name"},
 				},
-				"email": types.Field{
-					Input: types.Text{
+				"email": forms.Field{
+					Input: forms.Text{
 						Name: "email",
 						Type: "email",
 						ID: "email",
 						Placeholder: "Enter your email.",
 						Value: utils.StringOr(emailValue, ""),
 					},
-					Label: types.Label{For: "email", Text: "Email"},
+					Label: forms.Label{For: "email", Text: "Email"},
 				},
-				"email_confirm": types.Field{
-					Input: types.Text{
+				"email_confirm": forms.Field{
+					Input: forms.Text{
 						Name: "email_confirm",
 						Type: "email_confirm",
 						ID: "email_confirm",
 						Placeholder: "Confirm your email.",
 						Value: utils.StringOr(emailConfrimValue, ""),
 					},
-					Label: types.Label{For: "email", Text: "Confirm Email"},
+					Label: forms.Label{For: "email", Text: "Confirm Email"},
 				},
-				"password": types.Field{
-					Input: types.Text{
+				"password": forms.Field{
+					Input: forms.Text{
 						Name: "password",
 						Type: "password",
 						ID: "password",
 						Placeholder: "Enter your password.",
 					},
-					Label: types.Label{For: "password", Text: "Password"},
+					Label: forms.Label{For: "password", Text: "Password"},
 				},
-				"password_confirm": types.Field{
-					Input: types.Text{
+				"password_confirm": forms.Field{
+					Input: forms.Text{
 						Name: "password_confirm",
 						Type: "password_confirm",
 						ID: "password_confirm",
 						Placeholder: "Confirm your password.",
 					},
-					Label: types.Label{For: "password", Text: "Confirm Password"},
+					Label: forms.Label{For: "password", Text: "Confirm Password"},
 				},
 			},
-			Buttons: map[string]types.Button{
+			Buttons: map[string]forms.Button{
 				"submit": {
 					Type: "submit",
 					Text: "Register",
@@ -268,7 +269,7 @@ func (c *AuthController) HandleRegister(w http.ResponseWriter, r *http.Request) 
     }
 
     // Register the user
-    err := auth.Register(email, firstName, lastName, password)
+    err := services.Register(email, firstName, lastName, password)
     if err != nil {
         sess.SetFlash("register_error", err.Error())
         c.Redirect(w, r, registerUri, http.StatusSeeOther)

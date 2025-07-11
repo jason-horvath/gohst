@@ -11,12 +11,13 @@ import (
 // Middleware to attach session to request context
 func (sm *SessionManager) SessionMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app := config.GetAppConfig()
         // Load or create raw session data
         sessionData, sid := sm.store.GetSession(r)
         if sessionData == nil {
             sessionData, sid = sm.store.StartSession(w, r)
 
-			if config.App.IsDevelopment() {
+			if app.IsDevelopment() {
 				log.Println("Started a new session with ID:", sid)
 			}
         }

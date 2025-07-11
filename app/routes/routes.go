@@ -3,21 +3,27 @@ package routes
 import (
 	"net/http"
 
-	"gohst/internal/controllers"
+	"gohst/app/controllers"
 	"gohst/internal/middleware"
 	"gohst/internal/session"
 )
 
+type AppRouter struct {}
+
+func NewAppRouter() *AppRouter {
+	return &AppRouter{}
+}
+
 // Set up all routes and return the mux for the application.
-func SetupRoutes() http.Handler {
+func (r *AppRouter) SetupRoutes() http.Handler {
 	mainMux := http.NewServeMux()
 
 	// Single handler for all static files
 	fileServer := http.FileServer(http.Dir("static"))
 	mainMux.Handle("GET /static/", http.StripPrefix("/static/", fileServer))
 
-	publicRoutes := setupPublicRoutes()
-	authRoutes := setupAuthRoutes()
+	publicRoutes := r.setupPublicRoutes()
+	authRoutes := r.setupAuthRoutes()
 
 	mainMux.Handle("/auth/", http.StripPrefix("/auth", authRoutes)) // Auth routes
 	mainMux.Handle("/", publicRoutes) // Public routes
@@ -26,7 +32,7 @@ func SetupRoutes() http.Handler {
 }
 
 // auth related routes
-func setupAuthRoutes() http.Handler {
+func (r *AppRouter) setupAuthRoutes() http.Handler {
 	mux := http.NewServeMux()
 	auth := controllers.NewAuthController()
 
@@ -65,7 +71,7 @@ func setupAuthRoutes() http.Handler {
 }
 
 // Public routes meant for all users, authenticated or not
-func setupPublicRoutes() http.Handler {
+func (r *AppRouter) setupPublicRoutes() http.Handler {
 	mux := http.NewServeMux()
     pages := controllers.NewPagesController()
 

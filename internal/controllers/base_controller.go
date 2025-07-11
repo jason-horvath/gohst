@@ -10,14 +10,14 @@ import (
 
 type BaseController struct {
 	Templates   *template.Template
-	view		*render.View
+	View        *render.View
 }
 
 func NewBaseController() *BaseController {
 
 	view := render.NewView()
 	base := &BaseController{
-		view: view,
+		View: view,
 	}
 
 	return base
@@ -25,9 +25,8 @@ func NewBaseController() *BaseController {
 
 func (c *BaseController) Render(w http.ResponseWriter, r *http.Request, viewName string, data ...interface{}) {
 	useData := utils.StructSafe(data)
-    c.view.Render(w, r, viewName, useData)
+    c.View.Render(w, r, viewName, useData)
 }
-
 
 func (c *BaseController) Redirect(w http.ResponseWriter, r *http.Request, urlStr string, statusCode int) {
     http.Redirect(w, r, urlStr, statusCode)

@@ -1,19 +1,20 @@
 package controllers
 
 import (
-	"gohst/internal/render"
 	"net/http"
 
+	appConfig "gohst/app/config"
+	"gohst/internal/render"
 	"gohst/internal/session"
 )
 
 type PagesController struct {
-	*BaseController
+	*AppController
 }
 
 func NewPagesController() *PagesController {
     pages := &PagesController{
-        BaseController: NewBaseController(),
+        AppController: NewAppController(),
     }
 
     return pages
@@ -24,8 +25,12 @@ func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
 	username, _ := sess.Get("Username")
 
 	data := map[string]interface{}{
-		"SessionID": sess.ID(),
-		"Username":  username,
+		"SessionID":    sess.ID(),
+		"Username":     username,
+		"AppName":      appConfig.App.Name,
+		"AppVersion":   appConfig.App.Version,
+		"IsProduction": appConfig.App.IsProduction(),
+		"Features":     appConfig.App.Features,
 	}
 
 	c.Render(w, r, "pages/index", data)

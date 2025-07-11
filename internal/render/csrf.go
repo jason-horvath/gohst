@@ -19,7 +19,7 @@ const CSRFInputTemplate = `<input type="hidden" name="%s" value="%s">`
 func GetCSRF(r *http.Request) *CSRF {
 	sess := session.FromContext(r.Context())
 	rawToken, _ := sess.GetCSRF()
-	tokenName := config.App.CSRFName
+	tokenName := config.APP_CSRF_KEY
 	token := rawToken.(string)
 
 	return &CSRF{

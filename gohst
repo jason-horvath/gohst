@@ -25,6 +25,8 @@ VITE_PID_FILE="$TMP_DIR/vite.pid"
 wait_for_postgres() {
     spinner="/|\\-"
     i=0
+    elapsed=0
+    timeout=30
     echo "🐘 :: PostgreSQL startup ::"
     until docker exec "${APP_NAME:-gohst}-postgres" psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1" > /dev/null 2>&1; do
         # Check if container is running
@@ -74,15 +76,26 @@ case "$1" in
     build)
         echo "🚀 Building development environment..."
 
-        # Step 1: Run database migrations & seeds
-        echo "🔗 Ensuring database migrations & seeds are linked..."
+        # Step 1: Set up Docker postgres initialization
+        echo "🔗 Setting up Docker postgres initialization..."
         "$DOCKER_SQL_BUILD"
 
         # Step 2: Build Docker containers
         echo "🐳 Building Docker containers..."
         docker compose build
 
-        # Step 3: Install npm dependencies
+        # Step 3: Start Docker containers
+        echo "🐳 Starting Docker containers..."
+        docker compose up -d
+
+        # Step 4: Wait for PostgreSQL to be ready
+        wait_for_postgres
+
+        # Step 5: Run migrations and seeds
+        echo "🔄 Running database migrations and seeds..."
+        go run cmd/migrate/main.go full
+
+        # Step 6: Install npm dependencies
         echo "📦📦 Installing NPM Packages  📦📦"
         cd "$ROOT_DIR" || exit
         npm install
@@ -90,19 +103,31 @@ case "$1" in
         "$STORAGE_MGR" "link"
 
         echo "✅ Gohst is built!"
-        echo "👻 To begin, run: run: gohst up"
+        echo "👻 To begin development, run: ./gohst dev"
         ;;
     destroy)
         echo "🔥 Destroying development environment..."
 
         # Step 1: Bring down Docker
-        docker compose down -v
+        echo "🐳 Bringing down Docker containers..."
+        docker compose down --remove-orphans
+
+        # Step 2: Remove volumes (with error handling)
+        echo "🗑️ Removing Docker volumes..."
+        if docker compose down -v; then
+            echo "✅ Docker volumes removed successfully"
+        else
+            echo "⚠️  Some volumes may still be in use, trying to remove them individually..."
+            # Try to remove specific volumes
+            docker volume rm "gohst_gohst-postgres-data" 2>/dev/null && echo "✅ Postgres volume removed" || echo "ℹ️  Postgres volume not found or already removed"
+        fi
+
         "$DOCKER_SQL_CLEAR"
 
-        # Step 2: Start Air for live-reloading Go server
+        # Step 3: Stop Gohst server
         echo "💨 Stopping Gohst server..."
 
-        # Step 3: Stop Vite if running
+        # Step 4: Stop Vite if running
         if [ -f "$VITE_PID_FILE" ]; then
             echo "🛑 Stopping Vite..."
             kill $(cat "$VITE_PID_FILE") && rm "$VITE_PID_FILE"
@@ -111,7 +136,7 @@ case "$1" in
             echo "ℹ️  No Vite process found."
         fi
 
-        # Step 4: Remove node_modules
+        # Step 5: Remove node_modules
         if [ -d "$ROOT_DIR/node_modules" ]; then
             echo "🗑 Removing node_modules directory..."
             rm -rf "$ROOT_DIR/node_modules"
@@ -120,11 +145,11 @@ case "$1" in
             echo "ℹ️  No node_modules directory found."
         fi
 
-        # Step 5: Make sure the gohst server is down
+        # Step 6: Make sure the gohst server is down
         cd "$ROOT_DIR" || exit
         exec "$GOHST_SERVER" "stop"
 
-        # Step 6: tmp directory cleanup
+        # Step 7: tmp directory cleanup
 
         echo "✅ Dev environment is destroyed!"
         ;;

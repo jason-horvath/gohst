@@ -15,17 +15,34 @@ type Model[T any] struct {
     tableName string
 }
 
-// NewModel initializes a new model instance for a given table.
+// NewModel initializes a new model instance for a given table using the primary database.
 func NewModel[T any](tableName string) *Model[T] {
-	return &Model[T]{
-		db:        db.Database.DB,
+	model := &Model[T]{
 		tableName: tableName,
 	}
+	// Set to primary database by default
+	if err := model.SetDB(db.PRIMARY_DB_NAME); err != nil {
+		// If primary doesn't exist, this will fail and be obvious
+		panic(fmt.Sprintf("Failed to set primary database for table %s: %v", tableName, err))
+	}
+
+	return model
 }
 
 // GetDB returns the database connection
 func (m *Model[T]) GetDB() *sql.DB {
 	return m.db
+}
+
+// SetDB sets the database connection by name
+func (m *Model[T]) SetDB(name string) error {
+	dbManager := db.GetDB(name)
+	if dbManager == nil {
+		return fmt.Errorf("database connection '%s' does not exist", name)
+	}
+
+	m.db = dbManager.DB
+	return nil
 }
 
 // GetTableName returns the table name

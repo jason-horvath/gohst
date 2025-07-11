@@ -2,9 +2,6 @@
 
 SCRIPT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$SCRIPT_ROOT/../.."
-DATABASE_DIR="$ROOT_DIR/database"
-MIGRATION_DIR="$DATABASE_DIR/migrations"
-SEED_DIR="$DATABASE_DIR/seeds"
 DOCKER_POSTGRES_DIR="$ROOT_DIR/docker/postgres"
 DOCKER_DATA_DIR="$DOCKER_POSTGRES_DIR/data"
 DOCKER_INIT_DIR="$DOCKER_POSTGRES_DIR/init"
@@ -33,9 +30,6 @@ create_dir_if_not_exists "$DOCKER_INIT_DIR"
 rm -rf "$DOCKER_POSTGRES_DIR"/*.sql
 rm -rf "$DOCKER_DATA_DIR"/*.sql
 rm -rf "$DOCKER_INIT_DIR"/*.sql
-
-# Global Counter for SQL file order
-global_counter=1
 
 # Function to load environment variables from .env file
 load_env() {
@@ -86,31 +80,12 @@ EOF
     echo "✅ Postgres initialization script generated at $DOCKER_INIT_SQL_PATH"
 }
 
-# Function to copy files in order
-copy_files() {
-    local src_dir=$1
-    local target_dir=$2
-
-    echo "📂 Processing directory: $src_dir"
-
-    for file in "$src_dir"/*.sql; do
-        [ -f "$file" ] || continue  # Skip if no .sql files exist
-        cp "$file" "$target_dir/$(printf "%03d_%s" "$global_counter" "$(basename "$file")")"
-        ((global_counter++))
-    done
-}
-
 # Pre-process servers.json
 preprocess_servers_json
 
 # Initialize the database and user permissions
 echo "🚀 Creating Postgres initialization script..."
-create_init_sqlgohst
+create_init_sql
 
-# Copy migrations first (starting from 001)
-copy_files "$MIGRATION_DIR" "$DOCKER_DATA_DIR"
-
-# Copy seeds next (continuing counter to ensure migrations run first)
-copy_files "$SEED_DIR" "$DOCKER_DATA_DIR"
-
-echo "✅ Migrations and seeds copied to $DOCKER_DATA_DIR in correct order!"
+echo "✅ Docker SQL setup complete!"
+echo "💡 Use './gohst migrate:full' to run migrations and seeds through your Go application"

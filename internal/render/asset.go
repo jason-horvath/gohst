@@ -6,8 +6,10 @@ import (
 	"log"
 
 	"gohst/internal/config"
+	"gohst/internal/utils"
 )
 
+// Asset represents a single asset file with its type, file path, and optional metadata.
 type Asset struct{
 	Type string
 	File string
@@ -16,6 +18,7 @@ type Asset struct{
 
 type Assets 	[]Asset
 
+// ManifestAsset converts a ManifestEntry to an Asset.
 func ManifestAsset(entry config.ManifestEntry) *Asset {
 	if entry.IsEntry {
 		return &Asset {
@@ -27,13 +30,16 @@ func ManifestAsset(entry config.ManifestEntry) *Asset {
 	return &Asset{}
 }
 
+// AssetsHead returns the appropriate HTML for including assets in the head section of a page.
 func AssetsHead() template.HTML {
-    if config.App.IsProduction() {
+	app := config.GetAppConfig()
+    if app.IsProduction() {
         return AssetsHeadProd()
     }
     return AssetsHeadDev()
 }
 
+// AssetsHeadDev returns the HTML for development mode assets, including Vite client and entry files.
 func AssetsHeadDev() template.HTML {
 	vitePort := config.Vite.Port
     html := fmt.Sprintf(`
@@ -45,6 +51,7 @@ func AssetsHeadDev() template.HTML {
 	return template.HTML(html)
 }
 
+// AssetsHeadProd returns the HTML for production mode assets, using the Vite manifest.
 func AssetsHeadProd() template.HTML {
 	var html string
 	log.Println("MANIFEST:", config.Vite.Manifest)
@@ -52,7 +59,7 @@ func AssetsHeadProd() template.HTML {
 		asset := ManifestAsset(entry)
 		log.Println("Asset:", asset)
 		if len(asset.File) > 0 {
-			url := config.App.DistURL(asset.File)
+			url := utils.BuildDistURL(asset.File)
             switch asset.Type {
             case "javascript":
                 html += fmt.Sprintf(`<script type="module" src="%s"></script>`, url)
@@ -65,6 +72,7 @@ func AssetsHeadProd() template.HTML {
 	return template.HTML(html)
 }
 
+// StaticAssetURL returns the URL for a static asset file, using the configured distribution path.
 func StaticAssetURL(file string) string {
-	return config.App.FullURL(file)
+	return utils.BuildDistURL(file)
 }
