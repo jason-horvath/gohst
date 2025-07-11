@@ -3,14 +3,15 @@ package main
 import (
 	"log"
 	"net/http"
+	"strconv"
 
-	appConfig "gohst/app/config"
+	"gohst/app/config"
 	appHelpers "gohst/app/helpers"
 	appRoutes "gohst/app/routes"
 	"gohst/internal/render"
 	"gohst/internal/routes"
 
-	"gohst/internal/config"
+	coreConfig "gohst/internal/config"
 	"gohst/internal/db"
 	"gohst/internal/session"
 )
@@ -22,9 +23,10 @@ func main() {
         }
     }()
 
-	config.InitConfig()
-	appConfig.Initialize()      // Initialize app-specific config
-	dbConfigs := appConfig.CreateDBConfigs()   // Initialize database configurations
+	coreConfig.RegisterAppConfig(config.InitAppConfig())
+	coreConfig.InitConfig()    // Initialize app-specific config
+
+	dbConfigs := config.CreateDBConfigs()   // Initialize database configurations
 	session.Init()
 	db.InitDBPool(dbConfigs) // Initialize database connections
 	defer db.CloseDBPool()
@@ -33,15 +35,15 @@ func main() {
     render.RegisterTemplateFuncs(appHelpers.AppTemplateFuncs())
 
 	if config.App.IsDevelopment() {
-		log.Println("config.App:", config.App)
-		log.Println("appConfig.App:", appConfig.App)
-		log.Println("config.Vite:", config.Vite)
-		log.Println("config.DB:", config.DB)
+
+		log.Println("appConfig.App:", config.App)
+		log.Println("config.Vite:", coreConfig.Vite)
+		log.Println("config.DB:", coreConfig.DB)
 	}
 
 	appRouter := appRoutes.NewAppRouter()
 	mux := routes.RegisterRouter(appRouter)
-	port := config.App.PortStr()
+	port := strconv.Itoa(config.App.Port)
 	server := http.Server{
 		Addr: ":" + port,
 		Handler: mux,
