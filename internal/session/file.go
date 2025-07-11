@@ -28,6 +28,7 @@ type FileSessionManager struct {
 
 // NewFileSessionManager initializes a file-based session manager
 func NewFileSessionManager(storageDir string) (*FileSessionManager, string) {
+	app := config.GetAppConfig()
     // Convert to absolute path if relative
     if !filepath.IsAbs(storageDir) {
         // Get current working directory
@@ -35,7 +36,7 @@ func NewFileSessionManager(storageDir string) (*FileSessionManager, string) {
         if err == nil {
             storageDir = filepath.Join(cwd, storageDir)
 
-			if config.App.IsDevelopment() {
+			if app.IsDevelopment() {
 				log.Println("Using absolute session path:", storageDir)
 			}
         }
@@ -205,6 +206,7 @@ func (fsm *FileSessionManager) saveSession(sessionID string, session *SessionDat
 
 // Load session from file
 func (fsm *FileSessionManager) loadSession(sessionID string) *SessionData {
+	app := config.GetAppConfig()
     filePath := filepath.Join(fsm.dir, sessionID+SESSION_FILE_EXT)
 
     file, err := os.Open(filePath)
@@ -221,7 +223,7 @@ func (fsm *FileSessionManager) loadSession(sessionID string) *SessionData {
         return nil
     }
 
-	if config.App.IsDevelopment() {
+	if app.IsDevelopment() {
 		log.Printf("Successfully loaded session: %s", sessionID)
 	}
 
