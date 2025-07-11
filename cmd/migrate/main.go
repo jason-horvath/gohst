@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	appConfig "gohst/app/config"
 	"gohst/internal/config"
 	"gohst/internal/db"
 	"gohst/internal/migration"
@@ -14,12 +15,14 @@ import (
 func main() {
 	// Initialize configuration
 	config.InitConfig()
-
+	appConfig.Initialize()      // Initialize app-specific config
+	dbConfigs := appConfig.CreateDBConfigs()   // Initialize database configurations
+	db.InitDBPool(dbConfigs) // Initialize database connections
 	// Initialize database with better error messages for migrations
 	if err := db.InitDBForMigrations(); err != nil {
 		log.Fatal(err)
 	}
-	defer db.CloseDB()
+	defer db.CloseDBPool()
 
 	if len(os.Args) < 2 {
 		showHelp()
