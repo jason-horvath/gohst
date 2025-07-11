@@ -3,33 +3,35 @@ package helpers
 import (
 	"html/template"
 
-	appConfig "gohst/app/config"
+	"gohst/app/config"
 )
 
 // AppTemplateFuncs returns application-specific template functions
 func AppTemplateFuncs() template.FuncMap {
+	app := config.App
+
 	return template.FuncMap{
 		// App identity
-		"appName":        func() string { return appConfig.App.Name },
-		"appVersion":     func() string { return appConfig.App.Version },
-		"isMaintenanceMode": func() bool { return appConfig.IsMaintenanceMode() },
+		"appName":        func() string { return app.Name },
+		"appVersion":     func() string { return app.Version },
+		"isMaintenanceMode": func() bool { return app.IsMaintenanceMode() },
 
 		// App environment
-		"isDevelopment": func() bool { return appConfig.IsDevelopment() },
-        "isProduction":  func() bool { return appConfig.IsProduction() },
-        "url":           func() string { return appConfig.App.URL },
+		"isDevelopment": func() bool { return app.IsDevelopment() },
+        "isProduction":  func() bool { return app.IsProduction() },
+        "url":           func() string { return app.URL },
 
 		// Feature flag helpers
-		"canRegister":    func() bool { return appConfig.App.Features.EnableRegistration },
-		"hasProfiles":    func() bool { return appConfig.App.Features.EnableUserProfiles },
-		"hasNotifications": func() bool { return appConfig.App.Features.EnableNotifications },
+		"canRegister":    func() bool { return app.Features.EnableRegistration },
+		"hasProfiles":    func() bool { return app.Features.EnableUserProfiles },
+		"hasNotifications": func() bool { return app.Features.EnableNotifications },
 
 		// Upload configuration helpers
-		"maxUploadSize":  func() int64 { return appConfig.App.Upload.MaxFileSize },
-		"uploadPath":     func() string { return appConfig.App.Upload.UploadPath },
+		"maxUploadSize":  func() int64 { return app.Upload.MaxFileSize },
+		"uploadPath":     func() string { return app.Upload.UploadPath },
 
 		// Pagination configuration helpers
-		"defaultPageSize": func() int { return appConfig.App.Pagination.DefaultLimit },
-		"maxPageSize":     func() int { return appConfig.App.Pagination.MaxLimit },
+		"defaultPageSize": func() int { return app.Pagination.DefaultLimit },
+		"maxPageSize":     func() int { return app.Pagination.MaxLimit },
 	}
 }
