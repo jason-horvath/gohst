@@ -1,80 +1,179 @@
 # Gohst 👻
 
-A Go web application starter kit with built-in development tools and modern frontend capabilities. Gohst is designed to provide a solid foundation for building web applications with Go and Vite. The project includes a development environment with Docker, Air, and Postgres, as well as a CLI tool for managing the development workflow. Gohst also includes session management, database migrations, and HTML template rendering.
+A modern Go web framework with clean architecture and powerful development tools. Gohst provides a solid foundation for building scalable web applications with a clear separation between framework and application code.
 
-The project is structured to provide a clean separation of concerns and a clear path for extending functionality. Gohst is a great starting point for building web applications with Go and modern frontend tools like Tailwind CSS, Alpine.js, Typescript, and Vite.
+## Architecture
 
-NOTE: The project is ongoing and will continue to evolve with new features and improvements as needed. Future updates will include additional basic authentication, frontend tools, more configuration options, and enhanced development workflows.
+Gohst follows a **layered architecture** with clean separation of concerns:
+
+- **Framework Layer** (`internal/`) - Core framework functionality that can be reused across projects
+- **Application Layer** (`app/`) - Your specific business logic and application configuration
+- **Interface-based Dependency Injection** - Framework depends on app through well-defined interfaces
+
+This design allows the framework to evolve independently while keeping your application code clean and testable.
 
 ## Features
 
-- 🚀 Hot-reloading Go server using Air
-- 🎨 Vite for frontend assets
-- 🐳 Docker-based Postgres development environment
-- 📦 Session management (File/Redis support)
-- 🔄 Database migrations and seeding
-- 🛠️ HTML template rendering with layouts and partials
-- 🔧 Environment-based configuration
+- 🏗️ **Clean Architecture** - Separation between framework and application layers
+- � **Interface-based DI** - Framework depends on app through interfaces, not direct coupling
+- �🚀 **Hot-reloading** - Go server using Air for rapid development
+- 🎨 **Modern Frontend** - Vite for asset building with TypeScript, Tailwind CSS
+- 🐳 **Docker Development** - Postgres and PgAdmin in containers
+- 📦 **Flexible Sessions** - File or Redis-based session storage
+- 🗄️ **Advanced Database** - Multi-database support with generic models and relationships
+- 🔄 **Robust Migrations** - Database migrations and seeding with batch tracking
+- 🛠️ **Template System** - HTML rendering with layouts, partials, and custom functions
+- ⚙️ **Rich Configuration** - Environment-based config with feature flags and validation
+- 🔐 **Authentication** - Built-in auth with role-based permissions
+- 📝 **Form Handling** - Type-safe forms with validation and error handling
 
 ## Directory Structure
 
 ```
 gohst/
-├── cmd/
-│   ├── dev/                    # Development scripts
-│   │   ├── gohst_server        # ghost hot-reload control
-│   │   ├── docker_sql_build    # Database setup
-│   │   └── docker_sql_clear    # Database cleanup
-│   └── web/                    # Main application
-├── database/
-│   ├── migrations/             # SQL migrations
-│   └── seeds/                  # SQL seed files
-├── docker/
-│   └── posgres/                # postrges container setup
-├── internal/
-│   ├── config/                 # Application configuration
-│   ├── controllers/            # HTTP request handlers
-│   ├── db/                     # Database connection
-│   ├── middleware/             # HTTP middleware
-│   ├── render/                 # Template rendering
-│   ├── routes/                 # Route definitions
-│   └── session/                # Session management
-├── static/                     # Static assets
-│   └── dist/                   # Compiled assets
-├── templates/                  # HTML templates
-│   ├── layouts/                # Layout templates
-│   ├── pages/                  # Page templates
-│   └── partials/               # Partial templates
-├── .air.toml                   # Air configuration
+├── app/                        # 🏢 APPLICATION LAYER
+│   ├── config/                 # App-specific configuration
+│   │   ├── app.go             # Feature flags, pagination, uploads
+│   │   ├── db.go              # Database connections setup
+│   │   └── README.md          # Configuration documentation
+│   ├── controllers/           # Application controllers
+│   ├── helpers/               # App-specific template functions
+│   ├── models/                # Business domain models
+│   ├── routes/                # Application route definitions
+│   └── services/              # Business logic services
+├── internal/                   # 🔧 FRAMEWORK LAYER
+│   ├── auth/                  # Authentication framework
+│   ├── config/                # Framework configuration & interfaces
+│   ├── controllers/           # Base controller functionality
+│   ├── db/                    # Database connection management
+│   ├── forms/                 # Form handling and validation
+│   ├── middleware/            # HTTP middleware (auth, CSRF, logging)
+│   ├── migration/             # Database migration engine
+│   ├── models/                # Generic model base with relationships
+│   ├── render/                # Template rendering and asset management
+│   ├── routes/                # Route registration and handling
+│   ├── session/               # Session management (file/Redis)
+│   ├── utils/                 # Framework utilities
+│   └── validation/            # Input validation framework
+├── cmd/                        # 🚀 COMMANDS
+│   ├── migrate/               # Database migration CLI
+│   ├── web/                   # Main web application
+│   └── dev/                   # Development tools
+│       ├── gohst_server       # Development server control
+│       ├── docker_sql_build   # Database setup
+│       └── docker_sql_clear   # Database cleanup
+├── database/                   # 📊 DATABASE
+│   ├── migrations/            # SQL migration files
+│   └── seeds/                 # SQL seed files
+├── templates/                  # 🎨 TEMPLATES
+│   ├── layouts/               # Layout templates
+│   ├── components/            # Reusable components
+│   ├── partials/              # Partial templates
+│   └── views/                 # Page templates
+├── assets/                     # 🎨 FRONTEND ASSETS
+│   ├── css/                   # Stylesheet sources
+│   ├── js/                    # JavaScript/TypeScript sources
+│   └── icons/                 # SVG icons
+├── static/                     # 📁 STATIC FILES
+│   ├── dist/                  # Compiled frontend assets
+│   ├── images/                # Static images
+│   └── uploads/               # User uploads
+├── docker/                     # 🐳 DOCKER
+│   ├── postgres/              # Postgres container setup
+│   └── pgadmin/               # PgAdmin configuration
+├── tmp/                        # 🗂️ TEMPORARY
+│   ├── sessions/              # File-based sessions
+│   └── build-errors.log       # Development logs
+├── .air.toml                   # Air hot-reload configuration
 ├── .env                        # Environment variables
-├── .env.example                # Environment template
 ├── docker-compose.yml          # Docker services
-├── gohst                       # CLI tool
-└── package.json                # Frontend dependencies
+├── gohst                       # 👻 CLI tool
+├── go.mod                      # Go module
+├── package.json               # Frontend dependencies
+├── tailwind.config.js         # Tailwind CSS configuration
+└── vite.config.js             # Vite build configuration
 ```
 
-## Quick Start
+## Getting Started
 
-1. Clone the repository:
+### 1. Clone and Setup
 
 ```bash
 git clone https://github.com/jason-horvath/gohst.git
 cd gohst
-```
-
-2. Copy environment file:
-
-```bash
 cp .env.example .env
 ```
 
-3. Build the development environment:
+### 2. Configure Your Application
+
+Edit `.env` with your specific settings:
+
+```bash
+APP_NAME="My CRM App"
+DB_NAME=my_crm_db
+DB_USER=my_user
+DB_PASSWORD=my_password
+```
+
+### 3. Build Development Environment
 
 ```bash
 ./gohst build
 ```
 
+This will:
+
+- Start Docker containers (Postgres, PgAdmin)
+- Install frontend dependencies
+- Set up database connections
+- Run initial migrations and seeds
+
+### 4. Start Development
+
+```bash
+./gohst up
+```
+
+Your application will be available at:
+
+- **App**: http://localhost:3030
+- **PgAdmin**: http://localhost:5050 (gohst@gohst.dev / password)
+
+### 5. Create Your First Feature
+
+```bash
+# Create a migration
+go run cmd/migrate/main.go create create_companies_table
+
+# Create app models
+# app/models/company.go
+
+# Create controllers
+# app/controllers/company_controller.go
+
+# Add routes
+# app/routes/routes.go
+```
+
+## Architecture Benefits
+
+### For Framework Development
+
+- **Clean separation** - Framework code isolated in `internal/`
+- **Interface-driven** - Framework depends on app through interfaces
+- **Testable** - Each layer can be tested independently
+- **Reusable** - Framework can be extracted for other projects
+
+### For Application Development
+
+- **Focused business logic** - App code stays in `app/`
+- **Configuration flexibility** - Environment-driven config with sensible defaults
+- **Type safety** - Generic models and form validation
+- **Developer experience** - Hot reloading, error handling, debugging tools
+
 ## CLI Commands
+
+### Gohst Development CLI
 
 ```bash
 ./gohst <command>
@@ -91,6 +190,47 @@ Available commands:
 - `docker:sql:build` - Set up database files
 - `docker:sql:clear` - Clear database files
 - `docker:rebuild` - Rebuild Docker containers
+
+### Database Migrations
+
+```bash
+go run cmd/migrate/main.go <command>
+```
+
+Migration commands:
+
+- `run` - Run all pending migrations
+- `status` - Show migration status
+- `rollback` - Rollback the last batch of migrations
+- `create <name>` - Create a new migration file
+- `full` - Run migrations and seeds together
+
+Seeding commands:
+
+- `seed` - Run all pending seeds
+- `seed:status` - Show seed status
+- `seed:refresh` - Clear all seed records and re-run all seeds
+- `seed:rollback` - Rollback the last batch of seeds
+- `seed:create <name>` - Create a new seed file
+
+Examples:
+
+```bash
+# Create and run a migration
+go run cmd/migrate/main.go create create_companies_table
+go run cmd/migrate/main.go run
+
+# Create and run seeds
+go run cmd/migrate/main.go seed:create seed_users
+go run cmd/migrate/main.go seed
+
+# Check status
+go run cmd/migrate/main.go status
+go run cmd/migrate/main.go seed:status
+
+# Full setup (migrations + seeds)
+go run cmd/migrate/main.go full
+```
 
 ## Optional CLI Alias
 
@@ -110,16 +250,161 @@ Once the alias is added only `gohst <command>` is needed to run commands.
 
 ## Development Workflow
 
-1. Start the environment:
+### Day-to-Day Development
+
+1. **Start the environment:**
+
+   ```bash
+   ./gohst up
+   ```
+
+2. **Make changes** - Air automatically reloads Go code, Vite handles frontend assets
+
+3. **Create database changes:**
+
+   ```bash
+   go run cmd/migrate/main.go create add_user_preferences
+   # Edit the generated migration file
+   go run cmd/migrate/main.go run
+   ```
+
+4. **Add new features:**
+
+   - Create models in `app/models/`
+   - Add controllers in `app/controllers/`
+   - Define routes in `app/routes/`
+   - Create templates in `templates/`
+
+5. **Update configuration:**
+   - Modify `app/config/app.go` for business settings
+   - Update `.env` for environment-specific values
+
+### Framework Improvements
+
+When building your app, you may need to enhance the framework:
+
+1. **Identify the need** - Missing validation, model feature, etc.
+2. **Implement in `internal/`** - Keep framework code separate
+3. **Test with your app** - Ensure it works for your use case
+4. **Consider extraction** - Framework improvements can benefit other projects
+
+### Production Deployment
 
 ```bash
-./gohst up
+# Build for production
+NODE_ENV=production npm run build
+CGO_ENABLED=0 GOOS=linux go build -o app cmd/web/main.go
+
+# Set production environment
+APP_ENV_KEY=production
+SESSION_STORE=redis
+DB_HOST=production-db.example.com
+
+# Run migrations
+go run cmd/migrate/main.go run
 ```
 
-2. Make changes to Go files - Air will automatically reload
-3. Edit frontend assets - Vite will handle hot reloading
-4. Add database migrations in `database/migrations`
-5. Add database seeds in `database/seeds`
+````
+
+## Framework Patterns
+
+### Generic Models with Relationships
+
+```go
+// Framework provides generic base models
+type Company struct {
+    gohst.AppModel[Company]
+    Name     string `db:"name"`
+    Industry string `db:"industry"`
+}
+
+// Automatic CRUD operations
+company := &models.Company{}
+err := company.Create(map[string]interface{}{
+    "name":     "Acme Corp",
+    "industry": "Technology",
+})
+
+// Built-in soft deletes
+err = company.SoftDelete(companyID)
+````
+
+### Multi-Database Support
+
+```go
+// Configure multiple databases
+func CreateDBConfigs() *config.DatabaseConfigPool {
+    pool := config.NewDatabaseConfigPool()
+
+    // Primary database
+    pool.AddDatabase("primary", config.DatabaseConfig{
+        Host: "localhost",
+        Port: 5432,
+        User: "app",
+        Password: "secret",
+        DBName: "myapp",
+    })
+
+    // Analytics database
+    pool.AddDatabase("analytics", config.DatabaseConfig{
+        Host: "analytics.example.com",
+        Port: 5432,
+        User: "readonly",
+        Password: "secret",
+        DBName: "analytics",
+    })
+
+    return pool
+}
+
+// Use specific database
+analyticsDB := db.GetDB("analytics")
+```
+
+### Template Functions and Helpers
+
+```go
+// App-specific template functions
+func AppTemplateFuncs() template.FuncMap {
+    return template.FuncMap{
+        "formatCurrency": func(amount float64) string {
+            return fmt.Sprintf("$%.2f", amount)
+        },
+        "userCan": func(user User, permission string) bool {
+            return user.HasPermission(permission)
+        },
+        "appVersion": func() string {
+            return appConfig.App.Version
+        },
+    }
+}
+
+// Register with framework
+render.RegisterTemplateFuncs(appHelpers.AppTemplateFuncs())
+```
+
+### Form Handling and Validation
+
+```go
+// Type-safe form handling
+type CompanyForm struct {
+    Name     string `form:"name" validate:"required,min=2"`
+    Industry string `form:"industry" validate:"required"`
+    Website  string `form:"website" validate:"url"`
+}
+
+func (c *CompanyController) Create(w http.ResponseWriter, r *http.Request) {
+    form := &CompanyForm{}
+
+    if err := forms.ParseAndValidate(r, form); err != nil {
+        // Handle validation errors
+        c.RenderWithErrors(w, r, "companies/new", form, err)
+        return
+    }
+
+    // Form is valid, proceed with business logic
+}
+```
 
 ## Session Management
 
@@ -160,16 +445,201 @@ SESSION_LENGTH=60             # Session duration in minutes
 SESSION_CONTEXT_KEY=session   # Context key for session data
 ```
 
-## Environment Configuration
+## Configuration
 
-Key environment variables:
+Gohst uses a **layered configuration approach** with framework and application layers:
 
-- `APP_ENV_KEY` - Application environment
-- `APP_URL` - Application URL
-- `APP_PORT` - Server port
-- `DB_*` - Database configuration
-- `SESSION_*` - Session configuration
-- `VITE_*` - Frontend build configuration
+### Framework Configuration
+
+The framework provides core functionality configuration:
+
+- Database connections and pooling
+- Session management (file/Redis)
+- Template rendering and assets
+- Middleware and routing
+- Migration system
+
+### Application Configuration
+
+Your application extends the framework with business-specific config:
+
+```go
+// app/config/app.go
+type AppConfig struct {
+    Name        string
+    Version     string
+    Environment string
+    Debug       bool
+
+    // Feature flags
+    Features FeatureFlags
+
+    // Business settings
+    Pagination PaginationConfig
+    Upload     UploadConfig
+}
+```
+
+### Environment Variables
+
+All configuration can be controlled via environment variables:
+
+```bash
+# Application
+APP_NAME="My Gohst App"
+APP_VERSION="1.0.0"
+APP_ENV_KEY="production"
+APP_DEBUG=false
+APP_URL="https://myapp.com"
+APP_PORT=3030
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=myapp
+DB_PASSWORD=secret
+DB_NAME=myapp_production
+
+# Session Management
+SESSION_STORE=redis              # or 'file'
+SESSION_NAME=session_id
+SESSION_LENGTH=60               # minutes
+SESSION_REDIS_HOST=localhost
+SESSION_REDIS_PORT=6379
+
+# Feature Flags
+FEATURE_REGISTRATION=true
+FEATURE_USER_PROFILES=true
+FEATURE_NOTIFICATIONS=false
+MAINTENANCE_MODE=false
+
+# Business Settings
+PAGINATION_DEFAULT_LIMIT=20
+PAGINATION_MAX_LIMIT=100
+UPLOAD_MAX_FILE_SIZE=10485760   # 10MB in bytes
+UPLOAD_PATH="static/uploads"
+
+# Development
+VITE_MANIFEST_PATH=static/dist/.vite/manifest.json
+VITE_PORT=5174
+```
+
+### Interface-Based Dependency Injection
+
+The framework depends on your application through clean interfaces:
+
+```go
+// Framework defines what it needs
+type AppConfigProvider interface {
+    GetURL() string
+    GetDistPath() string
+    IsProduction() bool
+    IsDevelopment() bool
+}
+
+// Your app implements the interface
+func (ac *AppConfig) IsProduction() bool {
+    return ac.Environment == "production"
+}
+
+// Framework uses the interface
+app := config.GetAppConfig()
+if app.IsProduction() {
+    // Production-specific logic
+}
+```
+
+```
+
+```
+
+## What's New
+
+### Recent Framework Improvements
+
+- **🏗️ App Layer Architecture** - Clean separation between framework (`internal/`) and application (`app/`) code
+- **🔌 Interface-Based DI** - Framework depends on app through interfaces, enabling true decoupling
+- **🗄️ Multi-Database Support** - Configure multiple database connections with connection pooling
+- **📊 Advanced Migrations** - Batch tracking, rollbacks, and seeding with comprehensive CLI
+- **🎨 Generic Models** - Type-safe models with built-in CRUD operations and relationship support
+- **📝 Enhanced Forms** - Type-safe form parsing with validation and error handling
+- **⚙️ Rich Configuration** - Feature flags, pagination settings, upload controls, and environment-based config
+- **🛠️ Template Functions** - App-specific template helpers with framework registration
+- **🔐 Improved Auth** - Role-based authentication with session management
+- **🚀 Developer Experience** - Better debugging, error handling, and development workflow
+
+### Framework vs Application Code
+
+The framework now clearly distinguishes between:
+
+**Framework Code** (`internal/`):
+
+- Reusable across projects
+- Database connections and models
+- HTTP routing and middleware
+- Template rendering and assets
+- Session management
+- Form handling and validation
+
+**Application Code** (`app/`):
+
+- Business-specific logic
+- Domain models and controllers
+- Application configuration
+- Custom template functions
+- Business services and helpers
+
+This architecture makes Gohst suitable for:
+
+- **Rapid prototyping** - Start building immediately with solid foundations
+- **Production applications** - Scalable architecture with clean separation
+- **Framework development** - Easily extract and reuse framework components
+- **Team development** - Clear boundaries between framework and application concerns
+
+## Creating New Projects
+
+### Using Gohst as a Template
+
+To create a new project using Gohst as your framework:
+
+```bash
+# Clone with fresh git history
+git clone https://github.com/jason-horvath/gohst.git my-new-project
+cd my-new-project
+rm -rf .git
+git init
+git add .
+git commit -m "Initial commit: New project using Gohst framework"
+
+# Configure for your project
+# 1. Update .env with your settings
+# 2. Modify app/config/app.go with your business logic
+# 3. Clear out example code and start building
+```
+
+### Framework Evolution
+
+As you build your application, you'll likely improve the framework:
+
+```bash
+# Make framework improvements (in internal/)
+git add internal/
+git commit -m "framework: add file upload utilities"
+
+# Make application features (in app/)
+git add app/ templates/ static/
+git commit -m "app: add customer management"
+```
+
+Later, you can extract framework improvements to benefit other projects:
+
+```bash
+# Extract framework commits
+git log --oneline --grep="framework:"
+
+# Port improvements back to main framework repo
+git format-patch HEAD~5 --grep="framework:" --stdout > framework-improvements.patch
+```
 
 ## License
 
