@@ -15,6 +15,20 @@ type Label struct {
 
 // Option represents an option in a select element
 type Option struct {
-    Value string
-    Text  string
+    Value string `json:"value"`
+	Label string `json:"label"`
+}
+type CheckBoxOption struct {
+	Option
+	Checked bool `json:"checked"`
+}
+
+type RadioOption struct {
+    Option
+    Selected bool `json:"selected"`
+}
+
+type SelectOption struct {
+	Option
+	Selected bool `json:"selected"`
 }
