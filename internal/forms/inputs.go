@@ -17,26 +17,24 @@ type Text struct {
 
 // CheckBox represents an HTML checkbox input element
 type CheckBox struct {
-    Input   Input
-    Name    string
-    ID      string
-    Value   string
-    Type    string
-    Errors  []string
-    Label   Label
-    Checked bool
+    Input    Input
+    Name     string
+    ID       string
+    Type     string
+    Errors   []string
+    Label    Label
+    Options  []CheckBoxOption
 }
 
 // Radio represents an HTML radio input element
 type Radio struct {
-    Input   Input
-    Name    string
-    ID      string
-    Value   string
-    Type    string
-    Errors  []string
-    Label   Label
-    Checked bool
+    Input    Input
+    Name     string
+    ID       string
+    Type     string
+    Errors   []string
+    Label    Label
+    Options  []RadioOption
 }
 
 // Select represents an HTML select element
@@ -48,5 +46,5 @@ type Select struct {
     Type    string
     Errors  []string
     Label   Label
-    Options []Option
+    Options []SelectOption
 }
