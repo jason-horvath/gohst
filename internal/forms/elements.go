@@ -20,12 +20,16 @@ type Option struct {
 }
 type CheckBoxOption struct {
 	Option
-	Checked bool `json:"checked"`
+	Name	 string // group name
+	ID		 string // unique per option, e.g. groupName + "-" + value
+	Checked  bool `json:"checked"`
 }
 
 type RadioOption struct {
     Option
-    Selected bool `json:"selected"`
+	Name	 string // group name
+	ID		 string // unique per option, e.g. groupName + "-" + value
+	Selected bool `json:"selected"`
 }
 
 type SelectOption struct {
