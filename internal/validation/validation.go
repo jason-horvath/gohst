@@ -14,9 +14,9 @@ var (
     ErrWeakPassword = errors.New("password must include uppercase, lowercase, number, and special character")
 )
 
-// IsEmpty checks if a string is not empty (after trimming whitespace)
+// IsEmpty checks if a string is empty (after trimming whitespace)
 func IsEmpty(value string) bool {
-    return strings.TrimSpace(value) != ""
+    return strings.TrimSpace(value) == ""
 }
 
 // IsEmail validates an email address format
