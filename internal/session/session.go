@@ -17,9 +17,9 @@ type fieldErrorsKey string
 
 const (
     sessionKey sessKey = "gohst_session" // avoids colliding with SessionIDKey/CSRFKey
-	flashKey flashMessageKey = "_gohst_flash_" // for flash messages
-	oldKey oldDataKey = "_gohst_old_" // for old values in forms/data
-	fieldErrorsPrefix fieldErrorsKey = "_gohst_field_errors_" // for field-specific errors
+    flashKey flashMessageKey = "_gohst_flash_" // for flash messages
+    oldKey oldDataKey = "_gohst_old_" // for old values in forms/data
+    fieldErrorsPrefix fieldErrorsKey = "_gohst_field_errors_" // for field-specific errors
 )
 
 // Session is what your handlers will actually use
@@ -54,7 +54,7 @@ func (s *Session) Get(key string) (any, bool)  {
 
 // Get CSRF Token from the session
 func (s *Session) GetCSRF() (any, bool) {
-	if s.data == nil {
+    if s.data == nil {
         return nil, false
     }
     val, ok := s.data.Values[string(CSRFKey)]
@@ -63,9 +63,9 @@ func (s *Session) GetCSRF() (any, bool) {
 
 // Set the CSRF Token in the session
 func (s *Session) SetCSRF(csrf string) *Session {
-	if csrf == "" {
+    if csrf == "" {
         log.Println("CSRF token is nil, generating a new one")
-		csrf, _ = utils.GenerateCSRF() // Generate a new CSRF token
+        csrf, _ = utils.GenerateCSRF() // Generate a new CSRF token
     }
     s.data.Values[string(CSRFKey)] = csrf
     return s
@@ -73,10 +73,10 @@ func (s *Session) SetCSRF(csrf string) *Session {
 
 // RemoveCSRF removes the CSRF token from the session
 func (s *Session) RemoveCSRF() {
-	if s.data == nil {
-		return
-	}
-	s.Remove(string(CSRFKey))
+    if s.data == nil {
+        return
+    }
+    s.Remove(string(CSRFKey))
 }
 
 // Set writes a value, persists to the store, and re-sets the cookie
@@ -91,7 +91,7 @@ func (s *Session) Set(key string, val any) {
 // setSessionCookie is a helper to standardize cookie settings
 func (s *Session) setSessionCookie() {
     // Get environment from config
-	app := config.GetAppConfig()
+    app := config.GetAppConfig()
     isProduction := app.IsProduction()
 
     cookie := &http.Cookie{
@@ -99,8 +99,8 @@ func (s *Session) setSessionCookie() {
         Value:    s.id,
         Path:     "/",
         HttpOnly: true,
-		Secure:   isProduction,
-		SameSite: http.SameSiteLaxMode, // Set to Lax by default
+        Secure:   isProduction,
+        SameSite: http.SameSiteLaxMode, // Set to Lax by default
         Expires:  time.Now().Add(GetSessionLength()),
     }
 
@@ -218,8 +218,80 @@ func (s *Session) PeekAllOld() map[string]any {
 }
 
 // Add these methods to your session package
-func (s *Session) SetFieldError(field, message string) {
-    s.Set(string(fieldErrorsPrefix) + field, message)
+
+// SetFieldErrors stores a slice of error messages for a field
+func (s *Session) SetFieldErrors(field string, errors []string) {
+    s.Set(string(fieldErrorsPrefix)+field, errors)
+}
+
+// AddFieldError appends an error message to the slice for a field, creating the slice if needed
+func (s *Session) AddFieldError(field string, errMsg string) {
+    key := string(fieldErrorsPrefix) + field
+    val, ok := s.Get(key)
+    var errs []string
+    if ok {
+        if existing, ok := val.([]string); ok {
+            errs = existing
+        }
+    }
+    errs = append(errs, errMsg)
+    s.SetFieldErrors(field, errs)
+}
+
+// GetFieldErrors retrieves a slice of error messages for a field and removes it from the session
+func (s *Session) GetFieldErrors(field string) []string {
+    val, ok := s.Get(string(fieldErrorsPrefix) + field)
+    s.Remove(string(fieldErrorsPrefix) + field)
+    if ok {
+        if errs, ok := val.([]string); ok {
+            return errs
+        }
+    }
+    return []string{}
+}
+
+// PeekFieldErrors retrieves a slice of error messages for a field without removing it from the session
+// PeekFieldErrors retrieves a slice of error messages for a field without removing it from the session
+func (s *Session) PeekFieldErrors(field string) []string {
+    val, ok := s.Get(string(fieldErrorsPrefix) + field)
+    if ok {
+        if errs, ok := val.([]string); ok {
+            return errs
+        }
+    }
+    return []string{}
+}
+
+// PeekAllFieldErrors retrieves all field errors as a map[string][]string without removing them from the session
+func (s *Session) PeekAllFieldErrors() map[string][]string {
+    raw := s.getKeysByPrefix(string(fieldErrorsPrefix))
+    result := make(map[string][]string)
+    for k, v := range raw {
+        if errs, ok := v.([]string); ok {
+            result[k] = errs
+        }
+    }
+    return result
+}
+
+// GetAllFieldErrors retrieves all field errors as a map[string][]string and removes them from the session
+func (s *Session) GetAllFieldErrors() map[string][]string {
+    if s.data == nil {
+        return nil
+    }
+    fieldErrors := make(map[string][]string)
+    prefix := string(fieldErrorsPrefix)
+    prefixLen := len(prefix)
+    for key, val := range s.data.Values {
+        if len(key) > prefixLen && key[:prefixLen] == prefix {
+            fieldName := key[prefixLen:]
+            if errs, ok := val.([]string); ok {
+                fieldErrors[fieldName] = errs
+            }
+            s.Remove(key)
+        }
+    }
+    return fieldErrors
 }
 
 // GetFieldError retrieves a field-specific error and removes it from the session
