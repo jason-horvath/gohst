@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
+	"strings"
 	"time"
 
 	appConfig "gohst/app/config"
@@ -59,7 +62,7 @@ func main() {
 		if err := seedModel.SeedStatus(); err != nil {
 			log.Fatal("Failed to get seed status:", err)
 		}
-	case "seed:refresh":
+	case "seed:fresh":
 		// Initialize the seed model
 		seedModel := migration.NewSeedModel()
 		if err := seedModel.SeedRefresh(); err != nil {
@@ -92,6 +95,28 @@ func main() {
 		if err := createSeed(seedName); err != nil {
 			log.Fatal("Failed to create seed:", err)
 		}
+	case "fresh":
+		confirmDestructiveAction()
+
+		// Initialize the migration model
+		migrationModel := migration.NewMigrationModel()
+		if err := migrationModel.Refresh(); err != nil {
+			log.Fatal("Refresh migration failed:", err)
+		}
+	case "fresh:full":
+		confirmDestructiveAction()
+
+		// Initialize the migration model
+		migrationModel := migration.NewMigrationModel()
+		if err := migrationModel.Refresh(); err != nil {
+			log.Fatal("Refresh migration failed:", err)
+		}
+
+		// Initialize the seed model
+		seedModel := migration.NewSeedModel()
+		if err := seedModel.Seed(); err != nil {
+			log.Fatal("Seeding failed:", err)
+		}
 	default:
 		showHelp()
 		os.Exit(1)
@@ -106,10 +131,12 @@ Migration Commands:
   rollback      - Rollback the last batch of migrations
   seed          - Run all pending seeds
   seed:status   - Show seed status
-  seed:refresh  - Clear all seed records and re-run all seeds
+  seed:fresh    - Clear all seed records and re-run all seeds
   seed:rollback - Rollback the last batch of seeds
   seed:create   - Create a new seed file
   full          - Run migrations and seeds together
+  fresh         - Drop all tables and re-run all migrations
+  fresh:full    - Drop all tables, re-run migrations, and run seeds
   create        - Create a new migration file
 
 Usage:
@@ -118,10 +145,12 @@ Usage:
   migrate rollback
   migrate seed
   migrate seed:status
-  migrate seed:refresh
+  migrate seed:fresh
   migrate seed:rollback
   migrate seed:create seed_roles
   migrate full
+  migrate fresh
+  migrate fresh:full
   migrate create create_users_table
 `)
 }
@@ -174,4 +203,35 @@ func createSeed(name string) error {
 
 	fmt.Printf("Created seed: %s\n", filepath)
 	return nil
+}
+
+func confirmDestructiveAction() {
+	// Generate a random 8-digit string
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 8)
+	for i := range b {
+		b[i] = charset[r.Intn(len(charset))]
+	}
+	confirmString := string(b)
+
+	fmt.Printf("\n⚠️  DANGER: You are about to DROP ALL TABLES and re-run all migrations.\n")
+	fmt.Printf("This action is destructive and cannot be undone.\n\n")
+	fmt.Printf("To confirm, please type the following text exactly: %s\n", confirmString)
+	fmt.Print("> ")
+
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		log.Fatal("Failed to read input:", err)
+	}
+
+	input = strings.TrimSpace(input)
+
+	if input != confirmString {
+		fmt.Println("\n❌ Confirmation failed. Operation aborted.")
+		os.Exit(1)
+	}
+
+	fmt.Println("\nConfirmation successful. Proceeding...")
 }
