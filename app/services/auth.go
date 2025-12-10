@@ -101,7 +101,7 @@ func Register(email, firstName, lastName, password string) error {
     }
 
     // Save to database
-    err = userModel.Create(user)
+    _, err = userModel.Create(user)
     if err != nil {
         return errors.New("failed to create user: " + err.Error())
     }
