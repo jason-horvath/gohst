@@ -30,12 +30,18 @@ func InitDBPool(pool *config.DatabaseConfigPool) {
 		Databases = make(map[string]*DBManager)
 
 		for name, dbConfig := range pool.GetConfigs() {
-			dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			sslMode := dbConfig.SSLMode
+			if sslMode == "" {
+				sslMode = "disable" // Default for local development
+			}
+
+			dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 				dbConfig.Host,
 				dbConfig.Port,
 				dbConfig.User,
 				dbConfig.Password,
 				dbConfig.DBName,
+				sslMode,
 			)
 
 			db, err := sql.Open("postgres", dsn)

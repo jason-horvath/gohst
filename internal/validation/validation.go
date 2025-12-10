@@ -2,6 +2,7 @@ package validation
 
 import (
 	"errors"
+	"net/url"
 	"regexp"
 	"strings"
 	"unicode"
@@ -12,7 +13,10 @@ var (
     ErrRequired     = errors.New("this field is required")
     ErrInvalidEmail = errors.New("invalid email format")
     ErrWeakPassword = errors.New("password must include uppercase, lowercase, number, and special character")
+    ErrInvalidURL   = errors.New("invalid URL format")
 )
+
+var domainRegex = regexp.MustCompile(`^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
 
 // IsEmpty checks if a string is empty (after trimming whitespace)
 func IsEmpty(value string) bool {
@@ -24,6 +28,17 @@ func IsEmail(email string) bool {
     pattern := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
     match, _ := regexp.MatchString(pattern, email)
     return match
+}
+
+// IsValidDomain checks if the provided string is a valid domain name
+func IsValidDomain(domain string) bool {
+	return domainRegex.MatchString(domain)
+}
+
+// IsURL checks if a string is a valid URL with a valid domain
+func IsURL(str string) bool {
+	u, err := url.ParseRequestURI(str)
+	return err == nil && u.Host != "" && IsValidDomain(u.Hostname())
 }
 
 // IsStrongPassword checks if a password meets security requirements

@@ -17,65 +17,65 @@ type Model[T any] struct {
 
 // NewModel initializes a new model instance for a given table using the primary database.
 func NewModel[T any](tableName string) *Model[T] {
-	model := &Model[T]{
-		tableName: tableName,
-	}
-	// Set to primary database by default
-	if err := model.SetDB(db.PRIMARY_DB_NAME); err != nil {
-		// If primary doesn't exist, this will fail and be obvious
-		panic(fmt.Sprintf("Failed to set primary database for table %s: %v", tableName, err))
-	}
+    model := &Model[T]{
+        tableName: tableName,
+    }
+    // Set to primary database by default
+    if err := model.SetDB(db.PRIMARY_DB_NAME); err != nil {
+        // If primary doesn't exist, this will fail and be obvious
+        panic(fmt.Sprintf("Failed to set primary database for table %s: %v", tableName, err))
+    }
 
-	return model
+    return model
 }
 
 // GetDB returns the database connection
 func (m *Model[T]) GetDB() *sql.DB {
-	return m.db
+    return m.db
 }
 
 // SetDB sets the database connection by name
 func (m *Model[T]) SetDB(name string) error {
-	dbManager := db.GetDB(name)
-	if dbManager == nil {
-		return fmt.Errorf("database connection '%s' does not exist", name)
-	}
+    dbManager := db.GetDB(name)
+    if dbManager == nil {
+        return fmt.Errorf("database connection '%s' does not exist", name)
+    }
 
-	m.db = dbManager.DB
-	return nil
+    m.db = dbManager.DB
+    return nil
 }
 
 // GetTableName returns the table name
 func (m *Model[T]) GetTableName() string {
-	return m.tableName
+    return m.tableName
 }
 
 // WithTransaction handles database transactions.
 func (m *Model[T]) WithTransaction(fn func(*sql.Tx) error) error {
-	tx, err := m.db.Begin()
-	if err != nil {
-		return err
-	}
+    tx, err := m.db.Begin()
+    if err != nil {
+        return err
+    }
 
-	err = fn(tx)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
+    err = fn(tx)
+    if err != nil {
+        tx.Rollback()
+        return err
+    }
 
-	return tx.Commit()
+    return tx.Commit()
 }
 
 // FindByID retrieves a record by ID.
-func (m *Model[T]) FindByID(id uint64) (*T, error) {
-	query := "SELECT * FROM " + m.tableName + " WHERE id = $1"
-	return m.FirstOf(query, id)
+func (m *Model[T]) FindByID(id int64) (*T, error) {
+    query := "SELECT * FROM " + m.tableName + " WHERE id = $1"
+    return m.FirstOf(query, id)
 }
 
 // FindByField returns records that match the specified field value.
 // Example: FindByField("email", "user@example.com")
 func (m *Model[T]) FindByField(fieldName string, value interface{}) ([]T, error) {
-	queryTpl := /*sql*/ `SELECT * FROM %s WHERE %s = $1`
+    queryTpl := /*sql*/ `SELECT * FROM %s WHERE %s = $1`
     query := fmt.Sprintf(queryTpl, m.tableName, fieldName)
     return m.AllOf(query, value)
 }
@@ -83,31 +83,31 @@ func (m *Model[T]) FindByField(fieldName string, value interface{}) ([]T, error)
 // FindOneByField returns a single record that matches the specified field value.
 // Example: FindOneByField("email", "user@example.com")
 func (m *Model[T]) FindOneByField(fieldName string, value interface{}) (*T, error) {
-	queryTpl := /*sql*/ `SELECT * FROM %s WHERE %s = $1 LIMIT 1`
+    queryTpl := /*sql*/ `SELECT * FROM %s WHERE %s = $1 LIMIT 1`
     query := fmt.Sprintf(queryTpl, m.tableName, fieldName)
     return m.FirstOf(query, value)
 }
 
 // Delete removes a record by ID.
 func (m *Model[T]) Delete(id uint64) error {
-	query := "DELETE FROM " + m.tableName + " WHERE id = $1"
-	_, err := m.db.Exec(query, id)
-	return err
+    query := "DELETE FROM " + m.tableName + " WHERE id = $1"
+    _, err := m.db.Exec(query, id)
+    return err
 }
 
 // Count returns the total number of records.
 func (m *Model[T]) Count() (int, error) {
-	var count int
-	err := m.db.QueryRow("SELECT COUNT(*) FROM " + m.tableName).Scan(&count)
-	return count, err
+    var count int
+    err := m.db.QueryRow("SELECT COUNT(*) FROM " + m.tableName).Scan(&count)
+    return count, err
 }
 
 // Exists checks if a record exists.
 func (m *Model[T]) Exists(id uint64) (bool, error) {
-	var exists bool
-	query := "SELECT EXISTS(SELECT 1 FROM " + m.tableName + " WHERE id = $1)"
-	err := m.db.QueryRow(query, id).Scan(&exists)
-	return exists, err
+    var exists bool
+    query := "SELECT EXISTS(SELECT 1 FROM " + m.tableName + " WHERE id = $1)"
+    err := m.db.QueryRow(query, id).Scan(&exists)
+    return exists, err
 }
 
 // Recursive function to collect fields with db tags
@@ -236,7 +236,7 @@ func (m *Model[T]) AllOf(query string, args ...interface{}) ([]T, error) {
 }
 
 // Add this to model.go
-func (m *Model[T]) Insert(record *T) error {
+func (m *Model[T]) Insert(record *T) (int64, error) {
     // Use reflection to get struct fields
     v := reflect.ValueOf(record).Elem()
     t := v.Type()
@@ -289,19 +289,91 @@ func (m *Model[T]) Insert(record *T) error {
     )
 
     // Execute query
-    var id uint64
+    var id int64
     err := m.db.QueryRow(query, values...).Scan(&id)
     if err != nil {
-        return err
+        return 0, err
     }
 
-    // Set ID in the struct
+    // Set ID in the struct (support int and uint64)
     for i := 0; i < t.NumField(); i++ {
         if t.Field(i).Tag.Get("db") == "id" {
-            v.Field(i).SetUint(id)
+            f := v.Field(i)
+            switch f.Kind() {
+            case reflect.Int, reflect.Int64, reflect.Int32:
+                f.SetInt(id)
+            case reflect.Uint, reflect.Uint64, reflect.Uint32:
+                f.SetUint(uint64(id))
+            }
             break
         }
     }
 
-    return nil
+    return id, nil
+}
+
+// Update updates a record by ID
+func (m *Model[T]) Update(record *T) error {
+    // Use reflection to get struct fields
+    v := reflect.ValueOf(record).Elem()
+    t := v.Type()
+
+    var fields []string
+    var values []any
+    var recordID any
+
+    // Loop through fields with db tags
+    paramCount := 1
+    for i := 0; i < t.NumField(); i++ {
+        field := t.Field(i)
+
+        // Handle embedded structs
+        if field.Anonymous {
+            embedType := field.Type
+            embedValue := v.Field(i)
+
+            for j := 0; j < embedType.NumField(); j++ {
+                embedField := embedType.Field(j)
+                dbTag := embedField.Tag.Get("db")
+
+                if dbTag == "id" {
+                    recordID = embedValue.Field(j).Interface()
+                } else if dbTag != "" && dbTag != "-" {
+                    fields = append(fields, fmt.Sprintf("%s = $%d", dbTag, paramCount))
+                    paramCount++
+                    values = append(values, embedValue.Field(j).Interface())
+                }
+            }
+            continue
+        }
+
+        // Regular fields
+        dbTag := field.Tag.Get("db")
+        if dbTag == "id" {
+            recordID = v.Field(i).Interface()
+        } else if dbTag != "" && dbTag != "-" {
+            fields = append(fields, fmt.Sprintf("%s = $%d", dbTag, paramCount))
+            paramCount++
+            values = append(values, v.Field(i).Interface())
+        }
+    }
+
+    if recordID == nil {
+        return fmt.Errorf("no ID field found for update")
+    }
+
+    // Add ID to values for WHERE clause
+    values = append(values, recordID)
+
+    // Build query
+    query := fmt.Sprintf(
+        "UPDATE %s SET %s WHERE id = $%d",
+        m.tableName,
+        strings.Join(fields, ", "),
+        paramCount,
+    )
+
+    // Execute query
+    _, err := m.db.Exec(query, values...)
+    return err
 }

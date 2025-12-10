@@ -36,7 +36,7 @@ func (m *UserModel) FindByEmail(email string) (*User, error) {
 }
 
 // Create inserts a new user
-func (m *UserModel) Create(user *User) error {
+func (m *UserModel) Create(user *User) (int64, error) {
     // Set timestamps
     now := time.Now()
     user.CreatedAt = now

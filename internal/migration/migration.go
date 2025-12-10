@@ -240,6 +240,50 @@ func (m *MigrationModel) Migrate() error {
     return nil
 }
 
+// Refresh drops all tables and re-runs all migrations
+func (m *MigrationModel) Refresh() error {
+    // Get all table names
+    rows, err := m.GetDB().Query(`
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_type = 'BASE TABLE'
+    `)
+    if err != nil {
+        return fmt.Errorf("failed to get tables: %v", err)
+    }
+    defer rows.Close()
+
+    var tables []string
+    for rows.Next() {
+        var table string
+        if err := rows.Scan(&table); err != nil {
+            return fmt.Errorf("failed to scan table name: %v", err)
+        }
+        tables = append(tables, table)
+    }
+
+    if len(tables) == 0 {
+        log.Println("No tables to drop")
+    } else {
+        log.Printf("Dropping %d tables...", len(tables))
+
+        // Disable foreign key checks temporarily if needed, or just use CASCADE
+        for _, table := range tables {
+            log.Printf("Dropping table: %s", table)
+            _, err := m.GetDB().Exec(fmt.Sprintf("DROP TABLE IF EXISTS \"%s\" CASCADE", table))
+            if err != nil {
+                return fmt.Errorf("failed to drop table %s: %v", table, err)
+            }
+        }
+        log.Println("Successfully dropped all tables")
+    }
+
+    // Re-run migrations
+    log.Println("Re-running all migrations...")
+    return m.Migrate()
+}
+
 // Status shows migration status
 func (m *MigrationModel) Status() error {
     if err := m.CreateMigrationsTable(); err != nil {

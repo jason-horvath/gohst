@@ -53,7 +53,7 @@ func (a *AppModel[T]) ValidateAndInsert(record *T) error {
 	// Add app-specific validation logic here
 	a.LogActivity("INSERT_ATTEMPT", 0)
 
-	err := a.Insert(record)
+	_, err := a.Insert(record)
 	if err != nil {
 		a.LogActivity("INSERT_FAILED", 0)
 		return err

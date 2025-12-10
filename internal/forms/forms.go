@@ -4,12 +4,12 @@ package forms
 type Form struct {
     Method   string
     Action   string
-    Fieldset Fieldset
+    Fields Fields
     Buttons  map[string]Button
 }
 
-// Fieldset is a collection of form fields indexed by field name
-type Fieldset map[string]Field
+// Fields is a collection of form fields indexed by field name
+type Fields map[string]Field
 
 // Field represents a form field with label, input, and error
 type Field struct {
