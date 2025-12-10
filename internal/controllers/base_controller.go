@@ -36,3 +36,12 @@ func (c *BaseController) SetError(r *http.Request, message string) {
     sess := session.FromContext(r.Context())
     sess.SetFlash("error", message)
 }
+
+// SetTitle sets the page title for the current request
+func (c *BaseController) SetTitle(title string) {
+    c.View.SetTitle(title)
+}
+
+func (c *BaseController) JSON(w http.ResponseWriter, status int, data interface{}) {
+	render.JSON(w, status, data)
+}
