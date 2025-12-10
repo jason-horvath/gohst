@@ -4,9 +4,10 @@ const DB_DEFAULT_PORT = 5432
 type DatabaseConfig struct {
 	Host	 	string
 	Port	 	int
-	User	string
+	User		string
 	Password 	string
 	DBName		string
+	SSLMode		string  // Add SSL mode configuration
 }
 
 type DatabaseConfigPool struct {
