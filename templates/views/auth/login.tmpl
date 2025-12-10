@@ -9,7 +9,7 @@
     method="post"
   >
     {{ .CSRF.Input }}
-    {{ $fields := .Data.Form.Fieldset }}
+    {{ $fields := .Data.Form.Fields }}
     {{ template "forms/field" (index $fields "email") }}
     {{ template "forms/field" (index $fields "password") }}
     <div class="flex items-center justify-center">
