@@ -33,14 +33,17 @@ func LoadTemplateDir(dir string, ext ...string) *template.Template{
 }
 
 func LoadAllTemplates(dir string) {
-    var allFiles []string
+	var allFiles []string
 
 	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() && filepath.Ext(path) == ".html" {
-			allFiles = append(allFiles, path)
+		if !d.IsDir() {
+			ext := filepath.Ext(path)
+			if ext == ".html" || ext == ".tmpl" {
+				allFiles = append(allFiles, path)
+			}
 		}
 		return nil
 	})
@@ -61,8 +64,9 @@ func Text(w http.ResponseWriter, text string) {
 	w.Write([]byte(text))
 }
 
-func JSON(w http.ResponseWriter, data interface{}) {
+func JSON(w http.ResponseWriter, status int, data interface{}) {
     w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(status)
     err := json.NewEncoder(w).Encode(data)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
