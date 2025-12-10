@@ -42,7 +42,7 @@ func (v *Validator) Email(field, value, message string) *Validator {
 }
 
 // Password validates password strength
-func (v *Validator) Password(field, value, message string) *Validator {
+func (v *Validator) StrongPassword(field, value, message string) *Validator {
     if len(v.errors[field]) > 0 || value == "" {
         return v
     }
@@ -108,6 +108,21 @@ func (v *Validator) MinSelected(field string, values []string, minCount int, mes
 // Helper for default minCount = 1
 func (v *Validator) RequiredSelected(field string, values []string, message string) *Validator {
     return v.MinSelected(field, values, 1, message)
+}
+
+// URL validates a URL field
+func (v *Validator) URL(field, value, message string) *Validator {
+	if len(v.errors[field]) > 0 || value == "" {
+		return v
+	}
+
+	if !IsURL(value) {
+		if message == "" {
+			message = "Please enter a valid URL"
+		}
+		v.errors[field] = append(v.errors[field], message)
+	}
+	return v
 }
 
 // Errors returns all validation errors
