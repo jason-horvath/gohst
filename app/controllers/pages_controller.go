@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	appConfig "gohst/app/config"
-	"gohst/internal/render"
 	"gohst/internal/session"
 )
 
@@ -47,7 +46,7 @@ func (c *PagesController) Post(w http.ResponseWriter, r *http.Request) {
         Message: "This is post " + id,
     }
 
-    render.JSON(w, response)
+    c.JSON(w, http.StatusOK, response)
 }
 
 // NotFound handles 404 errors
