@@ -242,9 +242,9 @@ case "$1" in
         echo "📊 Checking seed status..."
         go run cmd/migrate/main.go seed:status
         ;;
-    migrate:seed:refresh)
+    migrate:seed:fresh)
         echo "🔄 Refreshing seeds..."
-        go run cmd/migrate/main.go seed:refresh
+        go run cmd/migrate/main.go seed:fresh
         ;;
     migrate:seed:rollback)
         echo "⏪ Rolling back last seed batch..."
@@ -253,6 +253,14 @@ case "$1" in
     migrate:full)
         echo "🚀 Running full database setup (migrations + seeds)..."
         go run cmd/migrate/main.go full
+        ;;
+    migrate:fresh)
+        echo "🔄 Refreshing database (drop all tables + migrate)..."
+        go run cmd/migrate/main.go fresh
+        ;;
+    migrate:fresh:full)
+        echo "🔄 Refreshing database and seeding (drop all + migrate + seed)..."
+        go run cmd/migrate/main.go fresh:full
         ;;
     migrate:seed:create)
         if [ -z "$2" ]; then
@@ -285,10 +293,12 @@ case "$1" in
         echo "  migrate:create        - Create a new migration file"
         echo "  migrate:seed          - Run all pending seeds"
         echo "  migrate:seed:status   - Show seed status"
-        echo "  migrate:seed:refresh  - Clear all seed records and re-run all seeds"
+        echo "  migrate:seed:fresh    - Clear all seed records and re-run all seeds"
         echo "  migrate:seed:rollback - Rollback the last batch of seeds"
         echo "  migrate:seed:create   - Create a new seed file"
         echo "  migrate:full          - Run migrations and seeds together"
+        echo "  migrate:fresh         - Drop all tables and re-run all migrations"
+        echo "  migrate:fresh:full    - Drop all tables, re-run migrations, and run seeds"
         echo "  storage:link          - Link assets to the static directory"
         echo ""
         exit 1
