@@ -36,7 +36,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		Form: forms.Form{
 			Method: "POST",
 			Action: "/auth/login", // Adjust as needed
-			Fieldset: forms.Fieldset{
+			Fields: forms.Fields{
 				"email": forms.Field{
 					Input: forms.Text{
 						Name: "email",
@@ -136,7 +136,7 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 		Form: forms.Form{
 			Method: "POST",
 			Action: "/auth/login", // Adjust as needed
-			Fieldset: forms.Fieldset{
+			Fields: forms.Fields{
 				"first_name": forms.Field{
                 Input: forms.Text{
                     Name:        "first_name",
