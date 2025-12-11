@@ -15,6 +15,7 @@ func CreateDBConfigs() *config.DatabaseConfigPool {
 		User:     config.GetEnv("DB_USER", "gohst").(string),
 		Password: config.GetEnv("DB_PASSWORD", "password").(string),
 		DBName:   config.GetEnv("DB_NAME", "gohst").(string),
+		SSLMode:  config.GetEnv("DB_SSL_MODE", "disable").(string),
 	}
 
 	dbConfigPool.Add("primary", primaryDB)
