@@ -299,9 +299,10 @@ DB_HOST=production-db.example.com
 ```
 
 ## Framework Patterns
+
 ```
 
-````
+```
 
 ## Framework Patterns
 
@@ -324,7 +325,7 @@ err := company.Create(map[string]interface{}{
 
 // Built-in soft deletes
 err = company.SoftDelete(companyID)
-````
+```
 
 ### Multi-Database Support
 
