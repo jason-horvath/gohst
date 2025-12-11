@@ -131,7 +131,7 @@ This will:
 ### 4. Start Development
 
 ```bash
-./gohst up
+./gohst dev
 ```
 
 Your application will be available at:
@@ -143,7 +143,7 @@ Your application will be available at:
 
 ```bash
 # Create a migration
-go run cmd/migrate/main.go create create_companies_table
+./gohst migrate:create create_companies_table
 
 # Create app models
 # app/models/company.go
@@ -173,63 +173,57 @@ go run cmd/migrate/main.go create create_companies_table
 
 ## CLI Commands
 
-### Gohst Development CLI
+The `gohst` CLI tool is your primary interface for development, database management, and deployment tasks.
 
 ```bash
-./gohst <command>
+./gohst <command> [arguments]
 ```
 
-Available commands:
+### Development Environment
 
-- `build` - Set up complete development environment
-- `up` - Start development environment
-- `down` - Stop development environment
-- `destroy` - Remove all development resources
-- `server:start` - Start Air server only
-- `server:stop` - Stop Air server only
-- `docker:sql:build` - Set up database files
-- `docker:sql:clear` - Clear database files
+- `build` - Build the complete development environment (Docker, NPM, Migrations)
+- `dev` - Start the development environment (Docker, Vite, Air)
+- `dev:down` - Stop the development environment
+- `destroy` - Destroy the environment (removes containers, volumes, node_modules)
+- `server:start` - Start the Go server (Air) independently
+- `server:stop` - Stop the Go server
 - `docker:rebuild` - Rebuild Docker containers
+- `docker:sql:build` - Set up database initialization files
+- `docker:sql:clear` - Clear database initialization files
+- `storage:link` - Link storage assets to the static directory
 
 ### Database Migrations
 
-```bash
-go run cmd/migrate/main.go <command>
-```
+- `migrate:run` - Run all pending migrations
+- `migrate:status` - Show migration status
+- `migrate:rollback` - Rollback the last batch of migrations
+- `migrate:create <name>` - Create a new migration file
+- `migrate:full` - Run migrations and seeds together
+- `migrate:fresh` - Drop all tables and re-run all migrations
+- `migrate:fresh:full` - Drop all tables, re-run migrations, and run seeds
 
-Migration commands:
+### Database Seeding
 
-- `run` - Run all pending migrations
-- `status` - Show migration status
-- `rollback` - Rollback the last batch of migrations
-- `create <name>` - Create a new migration file
-- `full` - Run migrations and seeds together
+- `migrate:seed` - Run all pending seeds
+- `migrate:seed:status` - Show seed status
+- `migrate:seed:fresh` - Clear all seed records and re-run all seeds
+- `migrate:seed:rollback` - Rollback the last batch of seeds
+- `migrate:seed:create <name>` - Create a new seed file
 
-Seeding commands:
-
-- `seed` - Run all pending seeds
-- `seed:status` - Show seed status
-- `seed:refresh` - Clear all seed records and re-run all seeds
-- `seed:rollback` - Rollback the last batch of seeds
-- `seed:create <name>` - Create a new seed file
-
-Examples:
+### Examples
 
 ```bash
-# Create and run a migration
-go run cmd/migrate/main.go create create_companies_table
-go run cmd/migrate/main.go run
+# Start working
+./gohst dev
 
-# Create and run seeds
-go run cmd/migrate/main.go seed:create seed_users
-go run cmd/migrate/main.go seed
+# Create a new migration
+./gohst migrate:create create_users_table
 
-# Check status
-go run cmd/migrate/main.go status
-go run cmd/migrate/main.go seed:status
+# Run migrations
+./gohst migrate:run
 
-# Full setup (migrations + seeds)
-go run cmd/migrate/main.go full
+# Reset database completely
+./gohst migrate:fresh:full
 ```
 
 ## Optional CLI Alias
@@ -255,7 +249,7 @@ Once the alias is added only `gohst <command>` is needed to run commands.
 1. **Start the environment:**
 
    ```bash
-   ./gohst up
+   ./gohst dev
    ```
 
 2. **Make changes** - Air automatically reloads Go code, Vite handles frontend assets
@@ -263,9 +257,9 @@ Once the alias is added only `gohst <command>` is needed to run commands.
 3. **Create database changes:**
 
    ```bash
-   go run cmd/migrate/main.go create add_user_preferences
+   ./gohst migrate:create add_user_preferences
    # Edit the generated migration file
-   go run cmd/migrate/main.go run
+   ./gohst migrate:run
    ```
 
 4. **Add new features:**
@@ -301,7 +295,10 @@ SESSION_STORE=redis
 DB_HOST=production-db.example.com
 
 # Run migrations
-go run cmd/migrate/main.go run
+./gohst migrate:run
+```
+
+## Framework Patterns
 ```
 
 ````
@@ -343,6 +340,7 @@ func CreateDBConfigs() *config.DatabaseConfigPool {
         User: "app",
         Password: "secret",
         DBName: "myapp",
+        SSLMode: "disable",
     })
 
     // Analytics database
@@ -352,6 +350,7 @@ func CreateDBConfigs() *config.DatabaseConfigPool {
         User: "readonly",
         Password: "secret",
         DBName: "analytics",
+        SSLMode: "require",
     })
 
     return pool
@@ -499,6 +498,7 @@ DB_PORT=5432
 DB_USER=myapp
 DB_PASSWORD=secret
 DB_NAME=myapp_production
+DB_SSL_MODE=disable              # disable, require, verify-ca, verify-full
 
 # Session Management
 SESSION_STORE=redis              # or 'file'
