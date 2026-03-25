@@ -1,0 +1,25 @@
+package viewforms
+
+import ft "gohst/internal/forms"
+
+// Field dispatches to the correct input component based on the concrete Input type.
+templ Field(f ft.Field) {
+	<div class="space-y-1">
+		@Label(f.Label)
+		switch v := f.Input.(type) {
+		case ft.Text:
+			@Input(v)
+		case ft.CheckBox:
+			@CheckBoxInput(v)
+		case ft.Radio:
+			@RadioInput(v)
+		case ft.Select:
+			@SelectInput(v)
+		case ft.File:
+			@FileInput(v)
+		}
+		if f.Error != "" {
+			<p class="px-2 text-sm text-red-500">{ f.Error }</p>
+		}
+	</div>
+}

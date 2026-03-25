@@ -1,0 +1,14 @@
+package partials
+
+import "gohst/internal/render"
+
+templ Header() {
+	<header class="flex items-center justify-between p-6 border-b mb-14 border-sky-800">
+		<div>
+			<h1 class="text-6xl font-bold"><a href={ render.AppURL() }>GOHST</a></h1>
+		</div>
+		<div>
+			@Nav()
+		</div>
+	</header>
+}

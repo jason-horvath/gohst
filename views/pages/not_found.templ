@@ -1,0 +1,18 @@
+package pages
+
+import "gohst/internal/render"
+
+// NotFoundPage returns a Page for the 404 view.
+func NotFoundPage() render.Page {
+	return render.Page{
+		Title:   "404 - Page Not Found",
+		Content: notFoundContent(),
+	}
+}
+
+templ notFoundContent() {
+	<div>
+		<h1 class="m-6 text-6xl font-bold text-center text-white">404</h1>
+		<p class="text-xl text-center text-white">Page not found</p>
+	</div>
+}

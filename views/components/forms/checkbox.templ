@@ -1,0 +1,24 @@
+package viewforms
+
+import ft "gohst/internal/forms"
+
+templ CheckBoxInput(v ft.CheckBox) {
+	<div class="space-y-2">
+		for _, opt := range v.Options {
+			<label class="flex items-center gap-2 cursor-pointer">
+				<input
+					class="w-4 h-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500 dark:border-gray-600 dark:bg-gray-800"
+					{ v.TemplAttrs()... }
+					type="checkbox"
+					id={ opt.ID }
+					name={ opt.Name }
+					value={ opt.Value }
+					if opt.Checked {
+						checked
+					}
+				/>
+				<span class="text-sm font-medium">{ opt.Label }</span>
+			</label>
+		}
+	</div>
+}

@@ -1,0 +1,22 @@
+package viewforms
+
+import ft "gohst/internal/forms"
+
+templ FileInput(v ft.File) {
+	<input
+		class="block w-full px-5 py-4 leading-6 border border-gray-200 rounded-lg cursor-pointer focus:border-sky-500 focus:ring-3 focus:ring-sky-500/50 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-sky-500"
+		{ v.TemplAttrs()... }
+		type="file"
+		id={ v.ID }
+		name={ v.Name }
+		if v.Accept != "" {
+			accept={ v.Accept }
+		}
+		if v.Multiple {
+			multiple
+		}
+	/>
+	if v.Placeholder != "" {
+		<p class="mt-1 px-2 text-sm text-gray-500 dark:text-gray-400">{ v.Placeholder }</p>
+	}
+}

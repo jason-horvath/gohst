@@ -1,0 +1,25 @@
+package partials
+
+import "gohst/internal/render"
+
+templ Nav() {
+	if authUser, ok := render.GetAuthFromCtx(ctx).(render.AuthUser); ok {
+		{ authUser.GetEmail() }
+		<nav class="flex items-center space-x-4 text-sky-200">
+			<form method="post" action={ render.AppURL() + "/auth/logout" } class="inline p-0 m-0">
+				@templ.Raw(string(render.GetCSRFFromCtx(ctx).Input))
+				<button
+					type="submit"
+					class="p-0 text-lg bg-transparent border-0 cursor-pointer text-sky-200 hover:text-sky-400"
+				>
+					Logout
+				</button>
+			</form>
+		</nav>
+	} else {
+		<nav class="flex items-center space-x-4 text-sky-200">
+			<a href={ render.AppURL() + "/auth/login" } class="text-lg">Login</a>
+			<a href={ render.AppURL() + "/auth/register" } class="text-lg">Register</a>
+		</nav>
+	}
+}
