@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"gohst/internal/forms"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -79,6 +80,23 @@ func TemplateFuncs() template.FuncMap {
 		"upper": strings.ToUpper,
 		"lower": strings.ToLower,
 		"title": func(s string) string { return cases.Title(language.English).String(s) },
+
+		// Returns the template name to use for a given form input value.
+		// Used by forms/field to dispatch to the correct partial.
+		"inputKind": func(input any) string {
+			switch input.(type) {
+			case forms.CheckBox:
+				return "forms/checkbox"
+			case forms.Radio:
+				return "forms/radio"
+			case forms.Select:
+				return "forms/select"
+			case forms.File:
+				return "forms/file"
+			default:
+				return "forms/input"
+			}
+		},
 	}
 
 	// Merge app functions (they can override core functions if needed)
