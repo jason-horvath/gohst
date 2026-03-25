@@ -1,6 +1,12 @@
 {{ define "forms/field" }}
+{{ $kind := inputKind .Input }}
 <div class="space-y-1">
   {{ template "forms/label" .Label }}
-  {{ template "forms/input" .Input }}
+  {{ if eq $kind "forms/checkbox" }}{{ template "forms/checkbox" .Input }}
+  {{ else if eq $kind "forms/radio" }}{{ template "forms/radio" .Input }}
+  {{ else if eq $kind "forms/select" }}{{ template "forms/select" .Input }}
+  {{ else if eq $kind "forms/file" }}{{ template "forms/file" .Input }}
+  {{ else }}{{ template "forms/input" .Input }}{{ end }}
+  {{ if .Error }}<p class="px-2 text-sm text-red-500">{{ .Error }}</p>{{ end }}
 </div>
 {{ end }}
