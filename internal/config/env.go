@@ -50,7 +50,7 @@ func LoadEnv(filePath string) error {
             continue
         }
         key := strings.TrimSpace(parts[0])
-        value := strings.TrimSpace(parts[1])
+        value := strings.Trim(strings.TrimSpace(parts[1]), `"`)
         // Set the environment variable
         err := os.Setenv(key, value)
         if err != nil {

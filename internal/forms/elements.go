@@ -1,14 +1,17 @@
 package forms
 
-// Element holds common HTML attributes for form elements
+// Element holds common HTML attributes for form elements.
+// Embed this in any struct that represents an HTML tag.
+// Attrs is the escape hatch for Alpine, HTMX, aria-*, and data-* attributes
+// that don't warrant their own struct field.
 type Element struct {
-		Attrs map[string]string // HTML attributes (e.g. Alpine or HTMX directives)
+	Attrs map[string]string
 }
 
 // ensureAttrs initializes the Attrs map if nil
 func (e *Element) ensureAttrs() {
 	if e.Attrs == nil {
-		 e.Attrs = make(map[string]string)
+		e.Attrs = make(map[string]string)
 	}
 }
 
@@ -22,7 +25,7 @@ func (e *Element) SetAttr(key, value string) {
 // Returns the value and a bool indicating presence
 func (e *Element) GetAttr(key string) (string, bool) {
 	if e.Attrs == nil {
-		 return "", false
+		return "", false
 	}
 	val, ok := e.Attrs[key]
 	return val, ok
@@ -32,7 +35,7 @@ func (e *Element) GetAttr(key string) (string, bool) {
 func (e *Element) AddAttrs(attrs map[string]string) {
 	e.ensureAttrs()
 	for k, v := range attrs {
-		 e.Attrs[k] = v
+		e.Attrs[k] = v
 	}
 }
 

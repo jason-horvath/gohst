@@ -102,6 +102,14 @@ func (m *Model[T]) Count() (int, error) {
     return count, err
 }
 
+// CountOf returns the count from an arbitrary count query.
+// The query must return a single integer (e.g., SELECT COUNT(*) FROM ...).
+func (m *Model[T]) CountOf(query string, args ...interface{}) (int, error) {
+    var count int
+    err := m.db.QueryRow(query, args...).Scan(&count)
+    return count, err
+}
+
 // Exists checks if a record exists.
 func (m *Model[T]) Exists(id uint64) (bool, error) {
     var exists bool
@@ -198,15 +206,9 @@ func (m *Model[T]) All(dest interface{}, query string, args ...interface{}) erro
         // Create a new struct instance
         newElem := reflect.New(elemType).Elem()
 
-        // Collect field pointers for scanning
+        // Collect field pointers for scanning (handles embedded structs like Timestamps)
         var values []interface{}
-        for i := 0; i < elemType.NumField(); i++ {
-            field := elemType.Field(i)
-            dbTag := field.Tag.Get("db")
-            if dbTag != "" && dbTag != "-" {
-                values = append(values, newElem.Field(i).Addr().Interface())
-            }
-        }
+        collectFieldsWithTags(newElem, newElem.Type(), &values)
 
         // Scan the row into the new struct
         if err := rows.Scan(values...); err != nil {

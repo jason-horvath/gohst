@@ -22,14 +22,14 @@ const REDIS_PASSWORD_DEFAULT = ""
 
 const REDIS_PORT_DEFAULT = 6379
 
-
 // RedisSessionManager handles Redis-based sessions
 type RedisSessionManager struct {
 	redisClient *redis.Client
+	cookieName  string
 }
 
 // NewRedisSessionManager initializes Redis connection
-func NewRedisSessionManager() (*RedisSessionManager, string) {
+func NewRedisSessionManager(cookieName string) (*RedisSessionManager, string) {
 	redisConf := config.Session.Redis
 	password := REDIS_PASSWORD_DEFAULT
 	db := REDIS_DB_DEFAULT
@@ -49,7 +49,7 @@ func NewRedisSessionManager() (*RedisSessionManager, string) {
 		DB:       db,
 	})
 
-	return &RedisSessionManager{redisClient: client}, "redis"
+	return &RedisSessionManager{redisClient: client, cookieName: cookieName}, "redis"
 }
 
 // GetRedisHostAddr returns the Redis host address
@@ -100,7 +100,7 @@ func (rsm *RedisSessionManager) StartSession(w http.ResponseWriter, r *http.Requ
 
 	// Set session ID in cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     SESSION_NAME,
+		Name:     rsm.cookieName,
 		Value:    sessionID,
 		Path:     "/",
 		HttpOnly: true,
@@ -111,7 +111,7 @@ func (rsm *RedisSessionManager) StartSession(w http.ResponseWriter, r *http.Requ
 
 // GetSession retrieves session from Redis and decodes Gob
 func (rsm *RedisSessionManager) GetSession(r *http.Request) (*SessionData, string) {
-	cookie, err := r.Cookie(SESSION_NAME)
+	cookie, err := r.Cookie(rsm.cookieName)
 	if err != nil {
 		return nil, ""
 	}
@@ -194,62 +194,62 @@ func (rsm *RedisSessionManager) GetSessionByID(ctx context.Context, sessionID st
 
 // RemoveValue deletes a key from the session data in Redis
 func (rsm *RedisSessionManager) Remove(sessionID string, key string) error {
-    ctx := context.Background()
+	ctx := context.Background()
 
-    // Get current session data
-    sessionData, err := rsm.GetSessionByID(ctx, sessionID)
-    if err != nil {
-        return err
-    }
+	// Get current session data
+	sessionData, err := rsm.GetSessionByID(ctx, sessionID)
+	if err != nil {
+		return err
+	}
 
-    delete(sessionData.Values, key)
+	delete(sessionData.Values, key)
 
-    var buf bytes.Buffer
-    encoder := gob.NewEncoder(&buf)
-    err = encoder.Encode(sessionData)
-    if err != nil {
-        return err
-    }
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	err = encoder.Encode(sessionData)
+	if err != nil {
+		return err
+	}
 
-    // Save the updated session back to Redis with the same expiration
-    ttl, err := rsm.redisClient.TTL(ctx, sessionID).Result()
-    if err != nil {
-        ttl = 30 * time.Minute // Default if TTL can't be retrieved
-    }
+	// Save the updated session back to Redis with the same expiration
+	ttl, err := rsm.redisClient.TTL(ctx, sessionID).Result()
+	if err != nil {
+		ttl = 30 * time.Minute // Default if TTL can't be retrieved
+	}
 
-    // Save the updated session back to Redis
-    err = rsm.redisClient.Set(ctx, sessionID, buf.Bytes(), ttl).Err()
-    if err != nil {
-        return err
-    }
+	// Save the updated session back to Redis
+	err = rsm.redisClient.Set(ctx, sessionID, buf.Bytes(), ttl).Err()
+	if err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
 
 // Save saves the entire session
 func (rsm *RedisSessionManager) Save(sessionID string, session *SessionData) error {
-    ctx := context.Background()
+	ctx := context.Background()
 
-    // Encode session data using Gob
-    var buf bytes.Buffer
-    encoder := gob.NewEncoder(&buf)
-    err := encoder.Encode(session)
-    if err != nil {
-        return err
-    }
+	// Encode session data using Gob
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	err := encoder.Encode(session)
+	if err != nil {
+		return err
+	}
 
-    // Get current TTL if possible
-    ttl, err := rsm.redisClient.TTL(ctx, sessionID).Result()
-    if err != nil || ttl < 0 {
-        ttl = GetSessionLength() // Default if TTL can't be retrieved
-    }
+	// Get current TTL if possible
+	ttl, err := rsm.redisClient.TTL(ctx, sessionID).Result()
+	if err != nil || ttl < 0 {
+		ttl = GetSessionLength() // Default if TTL can't be retrieved
+	}
 
-    // Save to Redis with the same expiration
-    return rsm.redisClient.Set(ctx, sessionID, buf.Bytes(), ttl).Err()
+	// Save to Redis with the same expiration
+	return rsm.redisClient.Set(ctx, sessionID, buf.Bytes(), ttl).Err()
 }
 
 // Delete removes the entire session
 func (rsm *RedisSessionManager) Delete(sessionID string) error {
-    ctx := context.Background()
-    return rsm.redisClient.Del(ctx, sessionID).Err()
+	ctx := context.Background()
+	return rsm.redisClient.Del(ctx, sessionID).Err()
 }

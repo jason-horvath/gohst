@@ -16,7 +16,13 @@ const SessionIDKey contextKey = "sessionID"
 
 const CSRFKey csrfKey = "csrfToken"
 
-const SESSION_NAME = "session_id"
+// SessionName returns the configured session cookie name.
+func SessionName() string {
+	if config.Session != nil && config.Session.Name != "" {
+		return config.Session.Name
+	}
+	return "_gohst_session"
+}
 
 const SESSION_STORE_DEFAULT = "file"
 
@@ -31,11 +37,13 @@ var SESSION_VALID_TYPES = []string{
 }
 
 var SM *SessionManager
+var SMAdmin *SessionManager
 
 // SessionManager using Redis
 type SessionManager struct {
-	StoreType string
-	store SessionStore
+	StoreType  string
+	store      SessionStore
+	cookieName string
 }
 
 // Initialize the session setup
@@ -46,12 +54,22 @@ func Init() {
 // Initialize the session manager
 func InitSessionManager() {
 	SM = NewSessionManager()
+	SMAdmin = NewSessionManagerWithName(config.Session.AdminName)
 }
 
 // NewSessionManager initializes Redis connection
 func NewSessionManager() *SessionManager {
+	return NewSessionManagerWithName(SessionName())
+}
+
+// NewSessionManagerWithName initializes session manager with a specific cookie name.
+func NewSessionManagerWithName(cookieName string) *SessionManager {
 	var store SessionStore
 	var storeType string
+
+	if cookieName == "" {
+		cookieName = SessionName()
+	}
 
 	sessionStore := config.GetEnv("SESSION_STORE", SESSION_STORE_DEFAULT).(string)
 
@@ -60,13 +78,17 @@ func NewSessionManager() *SessionManager {
 	}
 
 	if sessionStore == "redis" {
-		store, storeType = NewRedisSessionManager() // Redis session manager
+		store, storeType = NewRedisSessionManager(cookieName) // Redis session manager
 	} else {
 		sessionFilePath := config.GetEnv("SESSION_FILE_PATH", SESSION_FILE_PATH_DEFAULT).(string)
-		store, storeType = NewFileSessionManager(sessionFilePath) // File-based session manager
+		store, storeType = NewFileSessionManager(sessionFilePath, cookieName) // File-based session manager
 	}
 
-	return &SessionManager{StoreType: storeType, store: store}
+	return &SessionManager{
+		StoreType:  storeType,
+		store:      store,
+		cookieName: cookieName,
+	}
 }
 
 // GenerateSessionID creates a unique session ID
@@ -77,7 +99,7 @@ func GenerateSessionID() string {
 }
 
 // StartSession creates a session and stores it in Redis
-func (sm *SessionManager) StartSession(w http.ResponseWriter, r *http.Request)(*SessionData, string) {
+func (sm *SessionManager) StartSession(w http.ResponseWriter, r *http.Request) (*SessionData, string) {
 	return sm.store.StartSession(w, r)
 }
 
@@ -115,10 +137,10 @@ func IsValidSessionType(value string) bool {
 
 // Save saves the entire session data
 func (sm *SessionManager) Save(sessionID string, session *SessionData) error {
-    return sm.store.Save(sessionID, session)
+	return sm.store.Save(sessionID, session)
 }
 
 // Delete removes an entire session
 func (sm *SessionManager) Delete(sessionID string) error {
-    return sm.store.Delete(sessionID)
+	return sm.store.Delete(sessionID)
 }

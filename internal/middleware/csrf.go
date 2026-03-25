@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"crypto/subtle"
 	"gohst/internal/config"
 	"gohst/internal/session"
 	"gohst/internal/utils"
@@ -8,51 +9,52 @@ import (
 	"net/http"
 )
 
-// CSRFMiddleware is a middleware that protects against CSRF attacks.
+// CSRF protects against Cross-Site Request Forgery attacks.
+// Generates a token per session and validates it on state-changing requests.
 func CSRF(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // Get session from context (same way your render code does)
-        sess := session.FromContext(r.Context())
-        if sess == nil {
-            http.Error(w, "No session found", http.StatusInternalServerError)
-            return
-        }
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess := session.FromContext(r.Context())
+		if sess == nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 
-        // Check for existing token using the same method your render code uses
+		// Ensure a CSRF token exists in the session
+		token, ok := sess.GetCSRF()
+		if !ok || token == "" {
+			newToken, err := utils.GenerateCSRF()
+			if err != nil {
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
+			sess.Set("csrfToken", newToken)
+			token = newToken
+		}
 
-        token, ok := sess.GetCSRF()
-        if !ok || token == "" {
-            newToken, err := utils.GenerateCSRF()
-            if err != nil {
-                http.Error(w, "Internal server error", http.StatusInternalServerError)
-                return
-            }
-            sess.Set("csrfToken", newToken)
-            token = newToken
-        }
+		// Validate the CSRF token on state-changing requests
+		if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete || r.Method == http.MethodPatch {
+			// Check form value first (HTML forms), then X-CSRF-Token header (AJAX/fetch)
+			requestToken := r.FormValue(config.APP_CSRF_KEY)
+			if requestToken == "" {
+				requestToken = r.Header.Get("X-CSRF-Token")
+			}
+			if requestToken == "" {
+				http.Error(w, "CSRF token missing", http.StatusForbidden)
+				return
+			}
 
-        // Validate the CSRF token on POST requests
-        if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete {
-            // Get the CSRF token from the request
-            requestToken := r.FormValue(config.APP_CSRF_KEY)
-            if requestToken == "" {
-                http.Error(w, "CSRF token missing", http.StatusBadRequest)
-                return
-            }
-			log.Println("CSRF token from request:", requestToken)
-			log.Println("CSRF existingt:", token)
-            // Compare the session token with the request token
-            if token != requestToken {
-                log.Println("CSRF token invalid")
-                http.Error(w, "CSRF token invalid", http.StatusBadRequest)
-                return
-            }
+			// Constant-time comparison to prevent timing attacks
+			sessionToken, _ := token.(string)
+			if subtle.ConstantTimeCompare([]byte(sessionToken), []byte(requestToken)) != 1 {
+				app := config.GetAppConfig()
+				if app.IsDevelopment() {
+					log.Println("CSRF token mismatch")
+				}
+				http.Error(w, "CSRF token invalid", http.StatusForbidden)
+				return
+			}
+		}
 
-
-        }
-
-        // Add the CSRF token to the response context for use in templates
-        w.Header().Set("X-CSRF-Token", token.(string))
-        next.ServeHTTP(w, r)
-    })
+		next.ServeHTTP(w, r)
+	})
 }

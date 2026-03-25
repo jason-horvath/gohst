@@ -1,11 +1,8 @@
 package forms
 
-// Input is a generic interface for all form input types
-type Input interface{}
-
 // Text represents an HTML text input element
 type Text struct {
-    Input       Input
+    Element                  // HTML attributes (Alpine, HTMX, aria-*, data-*)
     Name        string
     ID          string
     Value       string
@@ -17,7 +14,7 @@ type Text struct {
 
 // CheckBox represents an HTML checkbox input element
 type CheckBox struct {
-    Input    Input
+    Element                  // HTML attributes (Alpine, HTMX, aria-*, data-*)
     Name     string
     ID       string
     Type     string
@@ -28,7 +25,7 @@ type CheckBox struct {
 
 // Radio represents an HTML radio input element
 type Radio struct {
-    Input    Input
+    Element                  // HTML attributes (Alpine, HTMX, aria-*, data-*)
     Name     string
     ID       string
     Type     string
@@ -39,7 +36,7 @@ type Radio struct {
 
 // Select represents an HTML select element
 type Select struct {
-    Input   Input
+    Element                  // HTML attributes (Alpine, HTMX, aria-*, data-*)
     Name    string
     ID      string
     Value   string
@@ -51,7 +48,7 @@ type Select struct {
 
 // File represents an HTML file input element
 type File struct {
-    Input       Input
+    Element                  // HTML attributes (Alpine, HTMX, aria-*, data-*)
     Name        string
     ID          string
     Type        string

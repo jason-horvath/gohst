@@ -14,6 +14,6 @@ type Fields map[string]Field
 // Field represents a form field with label, input, and error
 type Field struct {
     Label Label
-    Input Input
+    Input any
     Error string
 }
