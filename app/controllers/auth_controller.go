@@ -9,64 +9,57 @@ import (
 	"gohst/internal/session"
 	"gohst/internal/utils"
 	"gohst/internal/validation"
+	authviews "gohst/views/auth"
 )
 type AuthController struct {
 	*AppController
 }
 
 func NewAuthController() *AuthController {
-    auth := &AuthController{
-        AppController: NewAppController(),
-    }
-	auth.View.SetLayout("layouts/auth")
-    return auth
+	a := &AuthController{
+		AppController: NewAppController(),
+	}
+	a.View.SetLayout("layouts/auth")
+	return a
 }
 
 func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r.Context())
-	type LoginPageData struct {
-		Test string
-		Form forms.Form
-	}
 
 	emailValue, _ := sess.PeekOld("email")
 
-	data := LoginPageData{
-		Test: "This is a test",
+	data := authviews.LoginPageData{
 		Form: forms.Form{
 			Method: "POST",
-			Action: "/auth/login", // Adjust as needed
+			Action: "/auth/login",
 			Fields: forms.Fields{
 				"email": forms.Field{
 					Input: forms.Text{
-						Name: "email",
-						Type: "email",
-						ID: "email",
+						Name:        "email",
+						Type:        "email",
+						ID:          "email",
 						Placeholder: "Enter your email.",
-						Value: utils.StringOr(emailValue, ""),
+						Value:       utils.StringOr(emailValue, ""),
 					},
 					Label: forms.Label{For: "email", Text: "Email"},
 				},
 				"password": forms.Field{
 					Input: forms.Text{
-						Name: "password",
-						Type: "password",
-						ID: "password",
+						Name:        "password",
+						Type:        "password",
+						ID:          "password",
 						Placeholder: "Enter your password.",
 					},
 					Label: forms.Label{For: "password", Text: "Password"},
 				},
 			},
 			Buttons: map[string]forms.Button{
-				"submit": {
-					Type: "submit",
-					Text: "Login",
-				},
+				"submit": {Type: "submit", Text: "Login"},
 			},
 		},
 	}
 
-	c.Render(w, r, "auth/login", data)
+	c.Render(w, r, authviews.LoginPage(data))
 }
 
 // Handle the login info that is submitted from the form
@@ -121,91 +114,49 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r.Context())
-	type LoginPageData struct {
-		Test string
-		Form forms.Form
-	}
 
 	firstName, _ := sess.PeekOld("first_name")
 	lastName, _ := sess.PeekOld("last_name")
 	emailValue, _ := sess.PeekOld("email")
-	emailConfrimValue, _ := sess.PeekOld("email_confirm")
+	emailConfirmValue, _ := sess.PeekOld("email_confirm")
 
-	data := LoginPageData{
-		Test: "This is a test",
+	data := authviews.RegisterPageData{
 		Form: forms.Form{
 			Method: "POST",
-			Action: "/auth/login", // Adjust as needed
+			Action: "/auth/register",
 			Fields: forms.Fields{
 				"first_name": forms.Field{
-                Input: forms.Text{
-                    Name:        "first_name",
-                    Type:        "text",
-                    ID:          "first_name",
-                    Placeholder: "Your first name",
-                    Value:       utils.StringOr(firstName, ""),
-                },
-                Label: forms.Label{For: "first_name", Text: "First Name"},
+					Input: forms.Text{Name: "first_name", Type: "text", ID: "first_name", Placeholder: "Your first name", Value: utils.StringOr(firstName, "")},
+					Label: forms.Label{For: "first_name", Text: "First Name"},
 				},
 				"last_name": forms.Field{
-					Input: forms.Text{
-						Name:        "last_name",
-						Type:        "text",
-						ID:          "last_name",
-						Placeholder: "Your last name",
-						Value:       utils.StringOr(lastName, ""),
-					},
+					Input: forms.Text{Name: "last_name", Type: "text", ID: "last_name", Placeholder: "Your last name", Value: utils.StringOr(lastName, "")},
 					Label: forms.Label{For: "last_name", Text: "Last Name"},
 				},
 				"email": forms.Field{
-					Input: forms.Text{
-						Name: "email",
-						Type: "email",
-						ID: "email",
-						Placeholder: "Enter your email.",
-						Value: utils.StringOr(emailValue, ""),
-					},
+					Input: forms.Text{Name: "email", Type: "email", ID: "email", Placeholder: "Enter your email.", Value: utils.StringOr(emailValue, "")},
 					Label: forms.Label{For: "email", Text: "Email"},
 				},
 				"email_confirm": forms.Field{
-					Input: forms.Text{
-						Name: "email_confirm",
-						Type: "email_confirm",
-						ID: "email_confirm",
-						Placeholder: "Confirm your email.",
-						Value: utils.StringOr(emailConfrimValue, ""),
-					},
-					Label: forms.Label{For: "email", Text: "Confirm Email"},
+					Input: forms.Text{Name: "email_confirm", Type: "email", ID: "email_confirm", Placeholder: "Confirm your email.", Value: utils.StringOr(emailConfirmValue, "")},
+					Label: forms.Label{For: "email_confirm", Text: "Confirm Email"},
 				},
 				"password": forms.Field{
-					Input: forms.Text{
-						Name: "password",
-						Type: "password",
-						ID: "password",
-						Placeholder: "Enter your password.",
-					},
+					Input: forms.Text{Name: "password", Type: "password", ID: "password", Placeholder: "Enter your password."},
 					Label: forms.Label{For: "password", Text: "Password"},
 				},
 				"password_confirm": forms.Field{
-					Input: forms.Text{
-						Name: "password_confirm",
-						Type: "password_confirm",
-						ID: "password_confirm",
-						Placeholder: "Confirm your password.",
-					},
-					Label: forms.Label{For: "password", Text: "Confirm Password"},
+					Input: forms.Text{Name: "password_confirm", Type: "password", ID: "password_confirm", Placeholder: "Confirm your password."},
+					Label: forms.Label{For: "password_confirm", Text: "Confirm Password"},
 				},
 			},
 			Buttons: map[string]forms.Button{
-				"submit": {
-					Type: "submit",
-					Text: "Register",
-				},
+				"submit": {Type: "submit", Text: "Register"},
 			},
 		},
 	}
 
-	c.Render(w, r, "auth/register", data)
+	c.Render(w, r, authviews.RegisterPage(data))
 }
 
 func (c *AuthController) HandleRegister(w http.ResponseWriter, r *http.Request) {

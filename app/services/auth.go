@@ -28,6 +28,12 @@ func (ad *AuthData) Data() any {
 	return ad
 }
 
+// GetEmail implements render.AuthUser.
+func (ad *AuthData) GetEmail() string { return ad.Email }
+
+// GetName implements render.AuthUser.
+func (ad *AuthData) GetName() string { return ad.Name }
+
 // Login attempts to authenticate a user with email and password
 // Returns the authenticated user and any error that occurred
 func Login(sess *session.Session, email, password string) (*models.User, error) {

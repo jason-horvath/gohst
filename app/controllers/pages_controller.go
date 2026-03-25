@@ -3,8 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	appConfig "gohst/app/config"
-	"gohst/internal/session"
+	"gohst/views/pages"
 )
 
 type PagesController struct {
@@ -12,27 +11,15 @@ type PagesController struct {
 }
 
 func NewPagesController() *PagesController {
-    pages := &PagesController{
+    p := &PagesController{
         AppController: NewAppController(),
     }
 
-    return pages
+    return p
 }
 
 func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
-	sess := session.FromContext(r.Context())
-	username, _ := sess.Get("Username")
-
-	data := map[string]interface{}{
-		"SessionID":    sess.ID(),
-		"Username":     username,
-		"AppName":      appConfig.App.Name,
-		"AppVersion":   appConfig.App.Version,
-		"IsProduction": appConfig.App.IsProduction(),
-		"Features":     appConfig.App.Features,
-	}
-
-	c.Render(w, r, "pages/index", data)
+	c.Render(w, r, pages.IndexPage())
 }
 
 func (c *PagesController) Post(w http.ResponseWriter, r *http.Request) {
@@ -52,5 +39,5 @@ func (c *PagesController) Post(w http.ResponseWriter, r *http.Request) {
 // NotFound handles 404 errors
 func (c *PagesController) NotFound(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusNotFound)
-    c.Render(w, r, "pages/404")
+    c.Render(w, r, pages.NotFoundPage())
 }
