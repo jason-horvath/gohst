@@ -112,7 +112,7 @@ Edit `.env` with your specific settings:
 If you want the generated defaults to use a different project name than the folder name, pass it explicitly:
 
 ```bash
-./gohst env:init ioip
+./gohst env:init your-name
 ```
 
 The template uses explicit project tokens in `.env.example`, so it is clear which values are meant to be replaced during generation.
@@ -120,7 +120,7 @@ The template uses explicit project tokens in `.env.example`, so it is clear whic
 If `.env` already exists, the command now refuses to overwrite it unless you opt in:
 
 ```bash
-./gohst env:init --force ioip
+./gohst env:init --force your-name
 ```
 
 ```bash
