@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# Source the .env file
-if [ -f .env ]; then
-  source .env
-else
-  echo "❌ .env file not found!"
-  echo "👉 Please copy .env.example to .env and configure it before proceeding."
-  exit 1
-fi
+COMMAND="${1:-}"
 
 # Define the root directory of your project
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -20,6 +13,126 @@ DOCKER_SQL_CLEAR="$CMD_DEV_DIR/docker_sql_clear"
 STORAGE_MGR="$CMD_DEV_DIR/storage_mgr"
 VITE_PROCESS="$CMD_DEV_DIR/vite_process"
 VITE_PID_FILE="$TMP_DIR/vite.pid"
+
+
+load_env_if_present() {
+    if [ -f "$ROOT_DIR/.env" ]; then
+        source "$ROOT_DIR/.env"
+        return 0
+    fi
+
+    case "$COMMAND" in
+        ""|-h|--help|help|env:init)
+            return 0
+            ;;
+    esac
+
+    echo "❌ .env file not found!"
+    echo "👉 Run: ./gohst env:init [project_name]"
+    echo "👉 Or copy .env.example to .env and configure it before proceeding."
+    exit 1
+}
+
+
+build_project_display_name() {
+    printf '%s' "$1" | awk 'BEGIN { FS = "[-_]"; OFS = " " } {
+        for (i = 1; i <= NF; i++) {
+            if (length($i) > 0) {
+                $i = toupper(substr($i, 1, 1)) tolower(substr($i, 2))
+            }
+        }
+        print
+    }'
+}
+
+
+generate_env_file() {
+    local requested_name="$1"
+    local output_file="${2:-$ROOT_DIR/.env}"
+    local force_overwrite="${3:-false}"
+    local project_slug="$requested_name"
+
+    if [ -z "$project_slug" ]; then
+        project_slug="$(basename "$ROOT_DIR")"
+    fi
+
+    project_slug="$(printf '%s' "$project_slug" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
+
+    if [ -z "$project_slug" ]; then
+        echo "❌ Could not determine a valid project name."
+        echo "👉 Usage: ./gohst env:init <project_name> [output_file]"
+        return 1
+    fi
+
+    local project_display
+    project_display="$(build_project_display_name "$project_slug")"
+
+    if [ -f "$output_file" ] && [ "$force_overwrite" != "true" ]; then
+        echo "❌ $(basename "$output_file") already exists."
+        echo "👉 Re-run with: ./gohst env:init --force ${project_slug} ${output_file}"
+        return 1
+    fi
+
+    awk -v project_slug="$project_slug" -v project_display="$project_display" '
+        /^[[:space:]]*#/ { next }
+        {
+            line = $0
+            sub(/[[:space:]]+#.*$/, "", line)
+            gsub(/\r/, "", line)
+            if (line ~ /^[[:space:]]*$/) {
+                next
+            }
+            gsub(/__PROJECT_SLUG__/, project_slug, line)
+            gsub(/__PROJECT_DISPLAY_NAME__/, project_display, line)
+            gsub(/gohst/, project_slug, line)
+            gsub(/Gohst/, project_display, line)
+            print line
+        }
+    ' "$ROOT_DIR/.env.example" > "$output_file"
+
+    echo "✅ Generated $(basename "$output_file") from .env.example"
+    echo "   Project name: $project_slug"
+    echo "   Output: $output_file"
+}
+
+
+run_env_init() {
+    local force_overwrite="false"
+    local project_name=""
+    local output_file=""
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --force)
+                force_overwrite="true"
+                ;;
+            -h|--help)
+                echo "Usage: ./gohst env:init [--force] [project_name] [output_file]"
+                echo "  --force      overwrite the output file if it already exists"
+                echo "  project_name defaults to the current folder name"
+                echo "  output_file  defaults to .env"
+                return 0
+                ;;
+            *)
+                if [ -z "$project_name" ]; then
+                    project_name="$1"
+                elif [ -z "$output_file" ]; then
+                    output_file="$1"
+                else
+                    echo "❌ Too many arguments for env:init"
+                    echo "👉 Usage: ./gohst env:init [--force] [project_name] [output_file]"
+                    return 1
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    generate_env_file "$project_name" "$output_file" "$force_overwrite"
+}
+
+
+load_env_if_present
 
 
 wait_for_postgres() {
@@ -55,6 +168,10 @@ wait_for_postgres() {
 }
 
 case "$1" in
+    env:init)
+        shift
+        run_env_init "$@"
+        ;;
     server:start)
         exec "$GOHST_SERVER" "start"
         ;;
@@ -305,6 +422,8 @@ case "$1" in
         echo "  dev                   - Bring up the development environment: npm, docker, vite, gohst"
         echo "  dev:remote            - Start dev without Docker (connects to remote DB from .env)"
         echo "  dev:down              - Bring down the development environment: npm, docker, vite, gohst"
+        echo "  env:init              - Generate .env from .env.example, stripping comments and filling project template tokens"
+        echo "                           Add --force to overwrite an existing .env"
         echo "  server:start          - Start the air application server"
         echo "  server:stop           - Stop the ghost server"
         echo "  docker:sql:build      - Set up database migrations & seeds for docker"
