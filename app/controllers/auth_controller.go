@@ -6,11 +6,13 @@ import (
 	"gohst/app/services"
 	"gohst/internal/auth"
 	"gohst/internal/forms"
+	"gohst/internal/middleware"
 	"gohst/internal/session"
 	"gohst/internal/utils"
 	"gohst/internal/validation"
 	authviews "gohst/views/auth"
 )
+
 type AuthController struct {
 	*AppController
 }
@@ -21,6 +23,39 @@ func NewAuthController() *AuthController {
 	}
 	a.View.SetLayout("layouts/auth")
 	return a
+}
+
+func (c *AuthController) RegisterRoutes() http.Handler {
+	guestMux := http.NewServeMux()
+	guestMux.HandleFunc("GET /login", c.Login)
+	guestMux.HandleFunc("POST /login", c.HandleLogin)
+	guestMux.HandleFunc("GET /register", c.Register)
+	guestMux.HandleFunc("POST /register", c.HandleRegister)
+
+	guestRoutes := middleware.Chain(
+		guestMux,
+		session.SM.SessionMiddleware,
+		middleware.CSRF,
+		middleware.Logger,
+		middleware.Guest,
+	)
+
+	authMux := http.NewServeMux()
+	authMux.HandleFunc("POST /logout", c.HandleLogout)
+
+	authRoutes := middleware.Chain(
+		authMux,
+		session.SM.SessionMiddleware,
+		middleware.CSRF,
+		middleware.Logger,
+		middleware.Auth,
+	)
+
+	parentMux := http.NewServeMux()
+	parentMux.Handle("/logout", authRoutes)
+	parentMux.Handle("/", guestRoutes)
+
+	return parentMux
 }
 
 func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
@@ -67,23 +102,23 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	sess := session.FromContext(r.Context())
 	loginUri := "/auth/login"
 	// Parse the form data
-    if err := r.ParseForm(); err != nil {
-        c.SetError(r, "Failed to parse form data")
-        c.Redirect(w, r, loginUri, http.StatusSeeOther)
-        return
-    }
+	if err := r.ParseForm(); err != nil {
+		c.SetError(r, "Failed to parse form data")
+		c.Redirect(w, r, loginUri, http.StatusSeeOther)
+		return
+	}
 
-    // Get email and password from the form
-    email := r.FormValue("email")
-    password := r.FormValue("password")
+	// Get email and password from the form
+	email := r.FormValue("email")
+	password := r.FormValue("password")
 	sess.SetOld("email", email)
 
 	// Validate input
-    if email == "" || password == "" {
-        sess.SetFlash("login_error", "Email and password are required")
-        c.Redirect(w, r, loginUri, http.StatusSeeOther)
-        return
-    }
+	if email == "" || password == "" {
+		sess.SetFlash("login_error", "Email and password are required")
+		c.Redirect(w, r, loginUri, http.StatusSeeOther)
+		return
+	}
 
 
 	if !validation.IsEmail(email) {
@@ -94,22 +129,22 @@ func (c *AuthController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
     // Find user in database
 	user, err := services.Login(sess, email, password)
-    if err != nil {
-        sess.SetFlash("login_error", "Invalid email or password")
-        c.Redirect(w, r, loginUri, http.StatusSeeOther)
-        return
-    }
+	if err != nil {
+		sess.SetFlash("login_error", "Invalid email or password")
+		c.Redirect(w, r, loginUri, http.StatusSeeOther)
+		return
+	}
 
-    // Verify password
+	// Verify password
 	passwordOk, _ := utils.CheckPassword(password, user.PasswordHash)
-    if (!passwordOk) {
-        sess.SetFlash("login_error", "Invalid email or password")
-        c.Redirect(w, r, loginUri, http.StatusSeeOther)
-        return
-    }
+	if !passwordOk {
+		sess.SetFlash("login_error", "Invalid email or password")
+		c.Redirect(w, r, loginUri, http.StatusSeeOther)
+		return
+	}
 
-    // Redirect to dashboard or home page
-    c.Redirect(w, r, "/", http.StatusSeeOther)
+	// Redirect to dashboard or home page
+	c.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
@@ -160,90 +195,90 @@ func (c *AuthController) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) HandleRegister(w http.ResponseWriter, r *http.Request) {
-    sess := session.FromContext(r.Context())
+	sess := session.FromContext(r.Context())
 	registerUri := "/auth/register"
 
-    // Parse the form data
-    if err := r.ParseForm(); err != nil {
-        c.SetError(r, "Failed to parse form data")
-        c.Redirect(w, r, registerUri, http.StatusSeeOther)
-        return
-    }
+	// Parse the form data
+	if err := r.ParseForm(); err != nil {
+		c.SetError(r, "Failed to parse form data")
+		c.Redirect(w, r, registerUri, http.StatusSeeOther)
+		return
+	}
 
-    // Get form values
-    email := r.FormValue("email")
-    emailConfirm := r.FormValue("email_confirm")
-    firstName := r.FormValue("first_name") // Add these fields to your form
-    lastName := r.FormValue("last_name")   // Add these fields to your form
-    password := r.FormValue("password")
-    passwordConfirm := r.FormValue("password_confirm")
+	// Get form values
+	email := r.FormValue("email")
+	emailConfirm := r.FormValue("email_confirm")
+	firstName := r.FormValue("first_name")
+	lastName := r.FormValue("last_name")
+	password := r.FormValue("password")
+	passwordConfirm := r.FormValue("password_confirm")
 
-    // Save for form repopulation
-    sess.SetOld("email", email)
-    sess.SetOld("email_confirm", emailConfirm)
-    sess.SetOld("first_name", firstName)
-    sess.SetOld("last_name", lastName)
+	// Save for form repopulation
+	sess.SetOld("email", email)
+	sess.SetOld("email_confirm", emailConfirm)
+	sess.SetOld("first_name", firstName)
+	sess.SetOld("last_name", lastName)
 
-    // Validate inputs
-    if email == "" || emailConfirm == "" || password == "" || passwordConfirm == "" {
-        sess.SetFlash("register_error", "All fields are required")
-        c.Redirect(w, r, registerUri, http.StatusSeeOther)
-        return
-    }
+	// Validate inputs
+	if email == "" || emailConfirm == "" || password == "" || passwordConfirm == "" {
+		sess.SetFlash("register_error", "All fields are required")
+		c.Redirect(w, r, registerUri, http.StatusSeeOther)
+		return
+	}
 
-    // Check if emails match
-    if email != emailConfirm {
-        sess.SetFlash("register_error", "Emails do not match")
-        c.Redirect(w, r, registerUri, http.StatusSeeOther)
-        return
-    }
+	// Check if emails match
+	if email != emailConfirm {
+		sess.SetFlash("register_error", "Emails do not match")
+		c.Redirect(w, r, registerUri, http.StatusSeeOther)
+		return
+	}
 
-    // Check if passwords match
-    if password != passwordConfirm {
-        sess.SetFlash("register_error", "Passwords do not match")
-        c.Redirect(w, r, registerUri, http.StatusSeeOther)
-        return
-    }
+	// Check if passwords match
+	if password != passwordConfirm {
+		sess.SetFlash("register_error", "Passwords do not match")
+		c.Redirect(w, r, registerUri, http.StatusSeeOther)
+		return
+	}
 
-    // Validate email format
-    if !validation.IsEmail(email) {
-        sess.SetFlash("register_error", "Invalid email format")
-        c.Redirect(w, r, registerUri, http.StatusSeeOther)
-        return
-    }
+	// Validate email format
+	if !validation.IsEmail(email) {
+		sess.SetFlash("register_error", "Invalid email format")
+		c.Redirect(w, r, registerUri, http.StatusSeeOther)
+		return
+	}
 
-    // Validate password strength
-    if len(password) < 8 {
-        sess.SetFlash("register_error", "Password must be at least 8 characters")
-        c.Redirect(w, r, registerUri, http.StatusSeeOther)
-        return
-    }
+	// Validate password strength
+	if len(password) < 8 {
+		sess.SetFlash("register_error", "Password must be at least 8 characters")
+		c.Redirect(w, r, registerUri, http.StatusSeeOther)
+		return
+	}
 
-    // Register the user
-    err := services.Register(email, firstName, lastName, password)
-    if err != nil {
-        sess.SetFlash("register_error", err.Error())
-        c.Redirect(w, r, registerUri, http.StatusSeeOther)
-        return
-    }
+	// Register the user
+	err := services.Register(email, firstName, lastName, password)
+	if err != nil {
+		sess.SetFlash("register_error", err.Error())
+		c.Redirect(w, r, registerUri, http.StatusSeeOther)
+		return
+	}
 
-    // Set success message
-    sess.SetFlash("login_success", "Registration successful! You can now log in.")
+	// Set success message
+	sess.SetFlash("login_success", "Registration successful! You can now log in.")
 
-    // Redirect to login page
-    c.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	// Redirect to login page
+	c.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }
 
 // HandleLogout processes logout requests
 func (c *AuthController) HandleLogout(w http.ResponseWriter, r *http.Request) {
-    sess := session.FromContext(r.Context())
+	sess := session.FromContext(r.Context())
 
-    // Use the auth package's logout function (no error to check)
-    auth.Logout(sess)
+	// Use the auth package's logout function (no error to check)
+	auth.Logout(sess)
 
-    // Set a success message (after regeneration)
-    sess.SetFlash("success", "You have been logged out successfully")
+	// Set a success message (after regeneration)
+	sess.SetFlash("success", "You have been logged out successfully")
 
-    // Redirect to home page
-    c.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	// Redirect to home page
+	c.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }

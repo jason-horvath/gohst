@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"gohst/internal/middleware"
+	"gohst/internal/session"
 	"gohst/views/pages"
 )
 
@@ -11,11 +13,11 @@ type PagesController struct {
 }
 
 func NewPagesController() *PagesController {
-    p := &PagesController{
-        AppController: NewAppController(),
-    }
+	p := &PagesController{
+		AppController: NewAppController(),
+	}
 
-    return p
+	return p
 }
 
 func (c *PagesController) Index(w http.ResponseWriter, r *http.Request) {
@@ -40,4 +42,18 @@ func (c *PagesController) Post(w http.ResponseWriter, r *http.Request) {
 func (c *PagesController) NotFound(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusNotFound)
     c.Render(w, r, pages.NotFoundPage())
+}
+
+func (c *PagesController) RegisterRoutes() http.Handler {
+    mux := http.NewServeMux()
+    mux.HandleFunc("GET /{$}", c.Index)
+    mux.HandleFunc("GET /post/{id}", c.Post)
+    mux.HandleFunc("GET /", c.NotFound)
+
+    return middleware.Chain(
+        mux,
+        session.SM.SessionMiddleware,
+        middleware.CSRF,
+        middleware.Logger,
+    )
 }
