@@ -1,0 +1,63 @@
+package layouts
+
+import (
+	"gohst/internal/render"
+	"gohst/views/partials"
+)
+
+templ Default(title string, meta *render.PageMeta) {
+	{{ m := resolvePageMeta(ctx, title, meta) }}
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ m.Title }</title>
+			<link rel="icon" type="image/x-icon" href={ render.AppURL() + "/static/images/favicon.ico" }/>
+			if m.NoIndex {
+				<meta name="robots" content="noindex, nofollow"/>
+			}
+			if m.Description != "" {
+				<meta name="description" content={ m.Description }/>
+			}
+			if m.Canonical != "" {
+				<link rel="canonical" href={ m.Canonical }/>
+			}
+			<!-- Open Graph / Facebook -->
+			<meta property="og:type" content={ m.OGType }/>
+			<meta property="og:url" content={ m.Canonical }/>
+			<meta property="og:title" content={ m.Title }/>
+			<meta property="og:description" content={ m.Description }/>
+			if m.OGImage != "" {
+				<meta property="og:image" content={ m.OGImage }/>
+				<meta property="og:image:width" content="1200"/>
+				<meta property="og:image:height" content="630"/>
+			}
+			<!-- Twitter -->
+			<meta name="twitter:card" content={ m.TwitterCard }/>
+			<meta name="twitter:url" content={ m.Canonical }/>
+			<meta name="twitter:title" content={ m.Title }/>
+			<meta name="twitter:description" content={ m.Description }/>
+			if m.OGImage != "" {
+				<meta name="twitter:image" content={ m.OGImage }/>
+			}
+			<!-- Apple Touch Icon -->
+			<link rel="apple-touch-icon" sizes="180x180" href={ render.AppURL() + "/static/images/gohst-apple-touch-icon-180x180.png" }/>
+			<!-- Theme Color -->
+			<meta name="theme-color" content="#0f172a"/>
+			if m.Schema != "" {
+				<script type="application/ld+json">@templ.Raw(m.Schema)</script>
+			}
+			@templ.Raw(string(render.AssetsHead()))
+		</head>
+		<body class="text-white bg-zinc-700">
+			<main class="bg-gradient-to-b from-zinc-800 to-zinc-700">
+				<div>
+					@partials.Header()
+					{ children... }
+					@partials.Footer()
+				</div>
+			</main>
+		</body>
+	</html>
+}

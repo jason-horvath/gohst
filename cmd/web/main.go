@@ -6,10 +6,10 @@ import (
 	"strconv"
 
 	"gohst/app/config"
-	appHelpers "gohst/app/helpers"
 	appRoutes "gohst/app/routes"
 	"gohst/internal/render"
 	"gohst/internal/routes"
+	"gohst/views/layouts"
 
 	coreConfig "gohst/internal/config"
 	"gohst/internal/db"
@@ -31,8 +31,9 @@ func main() {
 	db.InitDBPool(dbConfigs) // Initialize database connections
 	defer db.CloseDBPool()
 
-	// App-specific setup
-    render.RegisterTemplateFuncs(appHelpers.AppTemplateFuncs())
+	// Register layouts
+	render.RegisterLayout("layouts/default", layouts.Default)
+	render.RegisterLayout("layouts/auth", layouts.Auth)
 
 	if config.App.IsDevelopment() {
 

@@ -2,7 +2,9 @@
 SCRIPT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_ROOT/../.." && pwd)"
 VITE_PROCESS="$ROOT_DIR/cmd/dev/vite_process"
-APP_CMD="go run cmd/web/main.go"
+APP_BUILD_CMD="templ generate"
+APP_COMPILE_CMD="go build -o tmp/main ./cmd/web/main.go"
+APP_RUN_CMD="./tmp/main"
 
 # Load .env file if it exists
 if [ -f .env ]; then
@@ -47,16 +49,50 @@ get_watch_command() {
             -e '/static/.vite/' \
             -e '/logs/' \
             -e '\.rdb$' \
+            -e '_templ\.go$' \
             \"$WATCH_DIR_ABS\""
     # Linux Distros
     elif [[ "$(uname -s)" == "Linux" ]]; then
         echo "inotifywait -m -r -e modify,create,delete \
-            --exclude '(\.git|vendor|cmd/dev|tmp|node_modules|static/dist|static/.vite|logs|\.rdb)' \
+            --exclude '(\.git|vendor|cmd/dev|tmp|node_modules|static/dist|static/.vite|logs|\.rdb|_templ\.go)' \
             \"$WATCH_DIR_ABS\""
     else
         echo "❌❌❌ Unsupported OS. Exiting. ❌❌❌" >&2
         exit 1
     fi
+}
+
+# Run the build command and surface errors in the terminal.
+# Logs all output to tmp/gohst.log regardless of success or failure.
+# Step 1: templ generate — catches templ syntax errors.
+# Step 2: go build -o tmp/main — catches all Go type/compile errors and produces the binary.
+run_build() {
+    echo "🔨 Building..."
+
+    BUILD_OUTPUT=$(eval "$APP_BUILD_CMD" 2>&1)
+    BUILD_EXIT=$?
+    echo "$BUILD_OUTPUT" >> tmp/gohst.log
+    if [ $BUILD_EXIT -ne 0 ]; then
+        echo ""
+        echo "❌ templ generate failed:"
+        echo "$BUILD_OUTPUT"
+        echo ""
+        return 1
+    fi
+
+    COMPILE_OUTPUT=$(eval "$APP_COMPILE_CMD" 2>&1)
+    COMPILE_EXIT=$?
+    echo "$COMPILE_OUTPUT" >> tmp/gohst.log
+    if [ $COMPILE_EXIT -ne 0 ]; then
+        echo ""
+        echo "❌ Go build failed:"
+        echo "$COMPILE_OUTPUT"
+        echo ""
+        return 1
+    fi
+
+    echo "✅ Build succeeded!"
+    return 0
 }
 
 # Watch for changes in the WATCH_DIR
@@ -69,11 +105,16 @@ watch_for_changes() {
     echo "🚀 Starting Gohst server..."
     cd "$ROOT_DIR" || exit 1
     gohst_log_header > "tmp/gohst.log"
-    nohup $APP_CMD >> tmp/gohst.log 2>&1 & disown
-    echo "👻 Gohst server started! 👻"
-    echo "----------------------------"
-    echo "Go to: $APP_URL"
-    echo ""
+    if run_build; then
+        nohup $APP_RUN_CMD >> tmp/gohst.log 2>&1 & disown
+        echo "👻 Gohst server started! 👻"
+        echo "----------------------------"
+        echo "Go to: $APP_URL"
+        echo ""
+    else
+        echo "⚠️  Server not started. Fix the error above and save a file to trigger a rebuild."
+        echo ""
+    fi
 
     WATCH_CMD=$(get_watch_command)
 
@@ -110,12 +151,17 @@ watch_for_changes() {
         echo "🚀 Restarting Gohst server..."
         cd "$ROOT_DIR" || exit 1
         echo "👻 Gohst server restarting..." >> "tmp/gohst.log"
-        nohup $APP_CMD >> tmp/gohst.log 2>&1 & disown
-
-        # start Vite
-        "$VITE_PROCESS" "start"
-        echo "👻 Gohst server restarted! 👻"
-        echo ""
+        if run_build; then
+            nohup $APP_RUN_CMD >> tmp/gohst.log 2>&1 & disown
+            # start Vite
+            "$VITE_PROCESS" "start"
+            echo "👻 Gohst server restarted! 👻"
+            echo ""
+        else
+            echo "⚠️  Server is down. Fix the error above and save a file to trigger a rebuild."
+            echo ""
+            "$VITE_PROCESS" "start"
+        fi
     done
 
     # Kill process running on APP_PORT

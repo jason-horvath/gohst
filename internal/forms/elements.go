@@ -1,5 +1,7 @@
 package forms
 
+import "github.com/a-h/templ"
+
 // Element holds common HTML attributes for form elements.
 // Embed this in any struct that represents an HTML tag.
 // Attrs is the escape hatch for Alpine, HTMX, aria-*, and data-* attributes
@@ -42,6 +44,19 @@ func (e *Element) AddAttrs(attrs map[string]string) {
 // ClearAttrs removes all attributes
 func (e *Element) ClearAttrs() {
 	e.Attrs = make(map[string]string)
+}
+
+// TemplAttrs converts the Attrs map to templ.Attributes for use with the
+// { attrs... } spread syntax in templ components.
+func (e *Element) TemplAttrs() templ.Attributes {
+	if e.Attrs == nil {
+		return templ.Attributes{}
+	}
+	out := make(templ.Attributes, len(e.Attrs))
+	for k, v := range e.Attrs {
+		out[k] = v
+	}
+	return out
 }
 
 // Button represents an HTML button element

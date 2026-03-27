@@ -3,34 +3,27 @@ package controllers
 import (
 	"gohst/internal/render"
 	"gohst/internal/session"
-	"gohst/internal/utils"
-	"html/template"
 	"net/http"
+
+	"github.com/a-h/templ"
 )
 
 type BaseController struct {
-	Templates *template.Template
-	View      *render.View
+	View *render.View
 }
 
 func NewBaseController() *BaseController {
-
-	view := render.NewView()
-	base := &BaseController{
-		View: view,
+	return &BaseController{
+		View: render.NewView(),
 	}
-
-	return base
 }
 
-func (c *BaseController) Render(w http.ResponseWriter, r *http.Request, viewName string, data ...interface{}) {
-	useData := utils.StructSafe(data)
-	c.View.Render(w, r, viewName, useData)
+func (c *BaseController) Render(w http.ResponseWriter, r *http.Request, page render.Page) {
+	c.View.Render(w, r, page)
 }
 
-func (c *BaseController) RenderPartial(w http.ResponseWriter, r *http.Request, viewName string, data ...interface{}) {
-	useData := utils.StructSafe(data)
-	c.View.RenderPartial(w, r, viewName, useData)
+func (c *BaseController) RenderPartial(w http.ResponseWriter, r *http.Request, component templ.Component) {
+	c.View.RenderPartial(w, r, component)
 }
 
 func (c *BaseController) Redirect(w http.ResponseWriter, r *http.Request, urlStr string, statusCode int) {

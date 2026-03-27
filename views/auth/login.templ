@@ -1,0 +1,42 @@
+package authviews
+
+import (
+	"gohst/internal/forms"
+	"gohst/internal/render"
+	"gohst/views/components/flash"
+	viewforms "gohst/views/components/forms"
+)
+
+// LoginPageData is the typed data contract for the login view.
+type LoginPageData struct {
+	Form forms.Form
+}
+
+// LoginPage returns a Page for rendering through the auth layout.
+func LoginPage(data LoginPageData) render.Page {
+	return render.Page{
+		Title:   "Login - Welcome to Gohst",
+		Content: loginContent(data),
+	}
+}
+
+templ loginContent(data LoginPageData) {
+	<div class="w-10/12 p-10 mx-auto border rounded-md border-sky-900">
+		<h2 class="text-center">Login</h2>
+		@flash.Error(render.GetFlashFromCtx(ctx)["login_error"])
+		<!-- Form Layouts: Labels On Top -->
+		<form
+			class="space-y-6 dark:text-gray-100"
+			action={ render.AppURL() + "/auth/login" }
+			method="post"
+		>
+			@templ.Raw(string(render.GetCSRFFromCtx(ctx).Input))
+			@viewforms.Field(data.Form.Fields["email"])
+			@viewforms.Field(data.Form.Fields["password"])
+			<div class="flex items-center justify-center">
+				@viewforms.Button(data.Form.Buttons["submit"])
+			</div>
+		</form>
+		<!-- END Form Layouts: Labels On Top -->
+	</div>
+}

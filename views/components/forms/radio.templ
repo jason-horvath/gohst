@@ -1,0 +1,24 @@
+package viewforms
+
+import ft "gohst/internal/forms"
+
+templ RadioInput(v ft.Radio) {
+	<div class="space-y-2">
+		for _, opt := range v.Options {
+			<label class="flex items-center gap-2 cursor-pointer">
+				<input
+					class="w-4 h-4 border-gray-300 text-sky-600 focus:ring-sky-500 dark:border-gray-600 dark:bg-gray-800"
+					{ v.TemplAttrs()... }
+					type="radio"
+					id={ opt.ID }
+					name={ opt.Name }
+					value={ opt.Value }
+					if opt.Selected {
+						checked
+					}
+				/>
+				<span class="text-sm font-medium">{ opt.Label }</span>
+			</label>
+		}
+	</div>
+}

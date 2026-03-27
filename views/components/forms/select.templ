@@ -1,0 +1,21 @@
+package viewforms
+
+import ft "gohst/internal/forms"
+
+templ SelectInput(v ft.Select) {
+	<select
+		class="block w-full px-5 py-4 leading-6 border border-gray-200 rounded-lg focus:border-sky-500 focus:ring-3 focus:ring-sky-500/50 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-sky-500"
+		{ v.TemplAttrs()... }
+		id={ v.ID }
+		name={ v.Name }
+	>
+		for _, opt := range v.Options {
+			<option
+				value={ opt.Value }
+				if opt.Selected {
+					selected
+				}
+			>{ opt.Label }</option>
+		}
+	</select>
+}

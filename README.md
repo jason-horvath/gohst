@@ -65,17 +65,18 @@ gohst/
 ├── database/                   # 📊 DATABASE
 │   ├── migrations/            # SQL migration files
 │   └── seeds/                 # SQL seed files
-├── templates/                  # 🎨 TEMPLATES
-│   ├── layouts/               # Layout templates
-│   ├── components/            # Reusable components
+├── views/                      # 🎨 VIEWS (templ)
+│   ├── layouts/               # Page layout templates
+│   ├── components/            # Reusable templ components
 │   ├── partials/              # Partial templates
-│   └── views/                 # Page templates
+│   ├── auth/                  # Auth page templates
+│   └── pages/                 # General page templates
 ├── assets/                     # 🎨 FRONTEND ASSETS
 │   ├── css/                   # Stylesheet sources
 │   ├── js/                    # JavaScript/TypeScript sources
 │   └── icons/                 # SVG icons
 ├── static/                     # 📁 STATIC FILES
-│   ├── dist/                  # Compiled frontend assets
+│   ├── dist/                  # Compiled frontend assets (Vite output)
 │   ├── images/                # Static images
 │   └── uploads/               # User uploads
 ├── docker/                     # 🐳 DOCKER
@@ -101,15 +102,32 @@ gohst/
 ```bash
 git clone https://github.com/jason-horvath/gohst.git
 cd gohst
-cp .env.example .env
+./gohst env:init
 ```
 
 ### 2. Configure Your Application
 
 Edit `.env` with your specific settings:
 
+If you want the generated defaults to use a different project name than the folder name, pass it explicitly:
+
 ```bash
-APP_NAME="My CRM App"
+./gohst env:init ioip
+```
+
+The template uses explicit project tokens in `.env.example`, so it is clear which values are meant to be replaced during generation.
+
+If `.env` already exists, the command now refuses to overwrite it unless you opt in:
+
+```bash
+./gohst env:init --force ioip
+```
+
+```bash
+# Machine-safe slug for infra/runtime names
+APP_NAME=my-crm-app
+# Human-readable name for UI copy
+APP_DISPLAY_NAME="My CRM App"
 DB_NAME=my_crm_db
 DB_USER=my_user
 DB_PASSWORD=my_password
@@ -137,7 +155,7 @@ This will:
 Your application will be available at:
 
 - **App**: http://localhost:3030
-- **PgAdmin**: http://localhost:5050 (gohst@gohst.dev / password)
+- **PgAdmin**: http://localhost:5050 (`PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD`)
 
 ### 5. Create Your First Feature
 
@@ -148,10 +166,10 @@ Your application will be available at:
 # Create app models
 # app/models/company.go
 
-# Create controllers
+# Create a controller with RegisterRoutes()
 # app/controllers/company_controller.go
 
-# Add routes
+# Mount it in the app router
 # app/routes/routes.go
 ```
 
@@ -263,7 +281,6 @@ Once the alias is added only `gohst <command>` is needed to run commands.
    ```
 
 4. **Add new features:**
-
    - Create models in `app/models/`
    - Add controllers in `app/controllers/`
    - Define routes in `app/routes/`
@@ -486,7 +503,10 @@ All configuration can be controlled via environment variables:
 
 ```bash
 # Application
-APP_NAME="My Gohst App"
+# Machine-safe slug for infra/runtime names
+APP_NAME=my-gohst-app
+# Human-readable name for UI copy
+APP_DISPLAY_NAME="My Gohst App"
 APP_VERSION="1.0.0"
 APP_ENV_KEY="production"
 APP_DEBUG=false

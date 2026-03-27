@@ -18,8 +18,8 @@ services:
     image: dpage/pgadmin4:latest
     container_name: ${APP_NAME:-gohst}-pgadmin
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@gohst.test}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-password}
       PGADMIN_CONFIG_SERVER_MODE: "True"
       PGADMIN_SERVER_JSON_FILE: "/pgadmin4/servers.json"
     ports:
