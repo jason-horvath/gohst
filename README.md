@@ -101,12 +101,26 @@ gohst/
 ```bash
 git clone https://github.com/jason-horvath/gohst.git
 cd gohst
-cp .env.example .env
+./gohst env:init
 ```
 
 ### 2. Configure Your Application
 
 Edit `.env` with your specific settings:
+
+If you want the generated defaults to use a different project name than the folder name, pass it explicitly:
+
+```bash
+./gohst env:init ioip
+```
+
+The template uses explicit project tokens in `.env.example`, so it is clear which values are meant to be replaced during generation.
+
+If `.env` already exists, the command now refuses to overwrite it unless you opt in:
+
+```bash
+./gohst env:init --force ioip
+```
 
 ```bash
 APP_NAME="My CRM App"
@@ -263,7 +277,6 @@ Once the alias is added only `gohst <command>` is needed to run commands.
    ```
 
 4. **Add new features:**
-
    - Create models in `app/models/`
    - Add controllers in `app/controllers/`
    - Define routes in `app/routes/`
