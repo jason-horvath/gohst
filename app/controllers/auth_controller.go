@@ -7,6 +7,7 @@ import (
 	"gohst/internal/auth"
 	"gohst/internal/forms"
 	"gohst/internal/middleware"
+	"gohst/internal/ratelimit"
 	"gohst/internal/session"
 	"gohst/internal/utils"
 	"gohst/internal/validation"
@@ -26,6 +27,9 @@ func NewAuthController() *AuthController {
 }
 
 func (c *AuthController) RegisterRoutes() http.Handler {
+	store := ratelimit.NewStore()
+	authLimiter := ratelimit.NewAuthSensitiveLimiter(store, "email")
+
 	guestMux := http.NewServeMux()
 	guestMux.HandleFunc("GET /login", c.Login)
 	guestMux.HandleFunc("POST /login", c.HandleLogin)
@@ -38,6 +42,7 @@ func (c *AuthController) RegisterRoutes() http.Handler {
 		middleware.CSRF,
 		middleware.Logger,
 		middleware.Guest,
+		authLimiter.Middleware,
 	)
 
 	authMux := http.NewServeMux()
