@@ -123,7 +123,10 @@ If `.env` already exists, the command now refuses to overwrite it unless you opt
 ```
 
 ```bash
-APP_NAME="My CRM App"
+# Machine-safe slug for infra/runtime names
+APP_NAME=my-crm-app
+# Human-readable name for UI copy
+APP_DISPLAY_NAME="My CRM App"
 DB_NAME=my_crm_db
 DB_USER=my_user
 DB_PASSWORD=my_password
@@ -151,7 +154,7 @@ This will:
 Your application will be available at:
 
 - **App**: http://localhost:3030
-- **PgAdmin**: http://localhost:5050 (gohst@gohst.dev / password)
+- **PgAdmin**: http://localhost:5050 (`PGADMIN_DEFAULT_EMAIL` / `PGADMIN_DEFAULT_PASSWORD`)
 
 ### 5. Create Your First Feature
 
@@ -499,7 +502,10 @@ All configuration can be controlled via environment variables:
 
 ```bash
 # Application
-APP_NAME="My Gohst App"
+# Machine-safe slug for infra/runtime names
+APP_NAME=my-gohst-app
+# Human-readable name for UI copy
+APP_DISPLAY_NAME="My Gohst App"
 APP_VERSION="1.0.0"
 APP_ENV_KEY="production"
 APP_DEBUG=false
