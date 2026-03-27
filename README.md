@@ -65,17 +65,18 @@ gohst/
 ├── database/                   # 📊 DATABASE
 │   ├── migrations/            # SQL migration files
 │   └── seeds/                 # SQL seed files
-├── templates/                  # 🎨 TEMPLATES
-│   ├── layouts/               # Layout templates
-│   ├── components/            # Reusable components
+├── views/                      # 🎨 VIEWS (templ)
+│   ├── layouts/               # Page layout templates
+│   ├── components/            # Reusable templ components
 │   ├── partials/              # Partial templates
-│   └── views/                 # Page templates
+│   ├── auth/                  # Auth page templates
+│   └── pages/                 # General page templates
 ├── assets/                     # 🎨 FRONTEND ASSETS
 │   ├── css/                   # Stylesheet sources
 │   ├── js/                    # JavaScript/TypeScript sources
 │   └── icons/                 # SVG icons
 ├── static/                     # 📁 STATIC FILES
-│   ├── dist/                  # Compiled frontend assets
+│   ├── dist/                  # Compiled frontend assets (Vite output)
 │   ├── images/                # Static images
 │   └── uploads/               # User uploads
 ├── docker/                     # 🐳 DOCKER
@@ -165,10 +166,10 @@ Your application will be available at:
 # Create app models
 # app/models/company.go
 
-# Create controllers
+# Create a controller with RegisterRoutes()
 # app/controllers/company_controller.go
 
-# Add routes
+# Mount it in the app router
 # app/routes/routes.go
 ```
 
